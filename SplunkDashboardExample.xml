@@ -1,8 +1,7 @@
-<dashboard version="1.1" script="dashboard.js">
-  <label>Business Flow Monitoring (Accordion)</label>
-  <description>Dashboard for monitoring business flows with asset details, organized in an accordion layout.</description>
-  
-    <row>
+<dashboard version="1.1" script="drilldown.js">
+  <label>Business Flow Monitoring (Drilldown)</label>
+  <description>Dashboard for monitoring business flows with asset details, using a drilldown table.</description>
+   <row>
         <panel>
           <title>Flow Overview - Customers Processed</title>
            <chart>
@@ -24,20 +23,42 @@
     </row>
 
     <row>
-      <panel  collapsible="true" expanded="false">
-        <title>Order Processing Flow Details</title>
-        <row>
-          <panel>
+      <panel>
+        <title>Select a Flow to View Details</title>
+          <table>
+            <search>
+              <query>
+                | makeresults
+                | eval data="[{\"flow\":\"Order Processing\"},{\"flow\":\"Account Creation\"}, {\"flow\":\"Payment Processing\"}, {\"flow\":\"Refund Processing\"}]"
+                | spath input=data
+                | mvexpand data
+                | spath input=data
+                | fields flow
+               </query>
+              </search>
+             <drilldown>
+                 <set token="flow_token">$row.flow$</set>
+             </drilldown>
+         </table>
+      </panel>
+    </row>
+
+    <row depends="$flow_token$">
+      <panel>
+          <title>Flow Details - $flow_token$</title>
+         <row>
+           <panel>
             <title>Response Time (ms)</title>
              <table>
               <search>
                 <query>
                 | makeresults
-                | eval data="[
-                      {\"asset\":\"Web Server\",\"responseTime\":230,\"errorRate\":0.02, \"health\":98,\"customers\":300},
-                      {\"asset\":\"API Server\",\"responseTime\":450,\"errorRate\":0.05, \"health\":95,\"customers\":600},
-                      {\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":330}
-                    ]"
+                | eval data=case(
+                    "$flow_token$"=="Order Processing", "[{\"asset\":\"Web Server\",\"responseTime\":230,\"errorRate\":0.02, \"health\":98,\"customers\":300},{\"asset\":\"API Server\",\"responseTime\":450,\"errorRate\":0.05, \"health\":95,\"customers\":600},{\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":330}]",
+                    "$flow_token$"=="Account Creation", "[{\"asset\":\"User Service\",\"responseTime\":200,\"errorRate\":0.01, \"health\":99,\"customers\":200},{\"asset\":\"Authentication Service\",\"responseTime\":300,\"errorRate\":0.03, \"health\":97,\"customers\":500},{\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":80}]",
+                   "$flow_token$"=="Payment Processing", "[{\"asset\":\"Payment Gateway\",\"responseTime\":300,\"errorRate\":0.02, \"health\":98,\"customers\":400},{\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":450},{\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":50}]",
+                   "$flow_token$"=="Refund Processing", "[{\"asset\":\"Payment Gateway\",\"responseTime\":350,\"errorRate\":0.02, \"health\":98,\"customers\":100},{\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":330},{\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":20}]"
+                  )
                 | spath input=data
                 | mvexpand data
                 | spath input=data
@@ -53,11 +74,12 @@
               <search>
                 <query>
                  | makeresults
-                | eval data="[
-                      {\"asset\":\"Web Server\",\"responseTime\":230,\"errorRate\":0.02, \"health\":98,\"customers\":300},
-                      {\"asset\":\"API Server\",\"responseTime\":450,\"errorRate\":0.05, \"health\":95,\"customers\":600},
-                      {\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":330}
-                    ]"
+                 | eval data=case(
+                    "$flow_token$"=="Order Processing", "[{\"asset\":\"Web Server\",\"responseTime\":230,\"errorRate\":0.02, \"health\":98,\"customers\":300},{\"asset\":\"API Server\",\"responseTime\":450,\"errorRate\":0.05, \"health\":95,\"customers\":600},{\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":330}]",
+                    "$flow_token$"=="Account Creation", "[{\"asset\":\"User Service\",\"responseTime\":200,\"errorRate\":0.01, \"health\":99,\"customers\":200},{\"asset\":\"Authentication Service\",\"responseTime\":300,\"errorRate\":0.03, \"health\":97,\"customers\":500},{\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":80}]",
+                   "$flow_token$"=="Payment Processing", "[{\"asset\":\"Payment Gateway\",\"responseTime\":300,\"errorRate\":0.02, \"health\":98,\"customers\":400},{\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":450},{\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":50}]",
+                   "$flow_token$"=="Refund Processing", "[{\"asset\":\"Payment Gateway\",\"responseTime\":350,\"errorRate\":0.02, \"health\":98,\"customers\":100},{\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":330},{\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":20}]"
+                  )
                 | spath input=data
                 | mvexpand data
                 | spath input=data
@@ -68,18 +90,19 @@
              </table>
           </panel>
         </row>
-         <row>
+        <row>
          <panel>
             <title>System Health (%)</title>
              <table>
               <search>
                 <query>
                    | makeresults
-                | eval data="[
-                      {\"asset\":\"Web Server\",\"responseTime\":230,\"errorRate\":0.02, \"health\":98,\"customers\":300},
-                      {\"asset\":\"API Server\",\"responseTime\":450,\"errorRate\":0.05, \"health\":95,\"customers\":600},
-                      {\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":330}
-                    ]"
+                   | eval data=case(
+                    "$flow_token$"=="Order Processing", "[{\"asset\":\"Web Server\",\"responseTime\":230,\"errorRate\":0.02, \"health\":98,\"customers\":300},{\"asset\":\"API Server\",\"responseTime\":450,\"errorRate\":0.05, \"health\":95,\"customers\":600},{\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":330}]",
+                    "$flow_token$"=="Account Creation", "[{\"asset\":\"User Service\",\"responseTime\":200,\"errorRate\":0.01, \"health\":99,\"customers\":200},{\"asset\":\"Authentication Service\",\"responseTime\":300,\"errorRate\":0.03, \"health\":97,\"customers\":500},{\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":80}]",
+                   "$flow_token$"=="Payment Processing", "[{\"asset\":\"Payment Gateway\",\"responseTime\":300,\"errorRate\":0.02, \"health\":98,\"customers\":400},{\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":450},{\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":50}]",
+                   "$flow_token$"=="Refund Processing", "[{\"asset\":\"Payment Gateway\",\"responseTime\":350,\"errorRate\":0.02, \"health\":98,\"customers\":100},{\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":330},{\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":20}]"
+                  )
                 | spath input=data
                 | mvexpand data
                 | spath input=data
@@ -95,11 +118,12 @@
                 <search>
                   <query>
                     | makeresults
-                    | eval data="[
-                         {\"asset\":\"Web Server\",\"responseTime\":230,\"errorRate\":0.02, \"health\":98,\"customers\":300},
-                        {\"asset\":\"API Server\",\"responseTime\":450,\"errorRate\":0.05, \"health\":95,\"customers\":600},
-                        {\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":330}
-                     ]"
+                    | eval data=case(
+                    "$flow_token$"=="Order Processing", "[{\"asset\":\"Web Server\",\"responseTime\":230,\"errorRate\":0.02, \"health\":98,\"customers\":300},{\"asset\":\"API Server\",\"responseTime\":450,\"errorRate\":0.05, \"health\":95,\"customers\":600},{\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":330}]",
+                    "$flow_token$"=="Account Creation", "[{\"asset\":\"User Service\",\"responseTime\":200,\"errorRate\":0.01, \"health\":99,\"customers\":200},{\"asset\":\"Authentication Service\",\"responseTime\":300,\"errorRate\":0.03, \"health\":97,\"customers\":500},{\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":80}]",
+                   "$flow_token$"=="Payment Processing", "[{\"asset\":\"Payment Gateway\",\"responseTime\":300,\"errorRate\":0.02, \"health\":98,\"customers\":400},{\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":450},{\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":50}]",
+                   "$flow_token$"=="Refund Processing", "[{\"asset\":\"Payment Gateway\",\"responseTime\":350,\"errorRate\":0.02, \"health\":98,\"customers\":100},{\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":330},{\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":20}]"
+                  )
                      | spath input=data
                      | mvexpand data
                      | spath input=data
@@ -110,276 +134,6 @@
             </table>
           </panel>
         </row>
-      </panel>
-    </row>
-
-    <row>
-      <panel  collapsible="true" expanded="false">
-        <title>Account Creation Flow Details</title>
-          <row>
-             <panel>
-                <title>Response Time (ms)</title>
-                <table>
-                    <search>
-                     <query>
-                       | makeresults
-                       | eval data="[
-                             {\"asset\":\"User Service\",\"responseTime\":200,\"errorRate\":0.01, \"health\":99,\"customers\":200},
-                             {\"asset\":\"Authentication Service\",\"responseTime\":300,\"errorRate\":0.03, \"health\":97,\"customers\":500},
-                             {\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":80}
-                            ]"
-                        | spath input=data
-                        | mvexpand data
-                        | spath input=data
-                        | fields asset responseTime
-                      </query>
-                  </search>
-                  <option name="drilldown">none</option>
-                 </table>
-             </panel>
-           <panel>
-              <title>Error Rate</title>
-              <table>
-                <search>
-                  <query>
-                  | makeresults
-                       | eval data="[
-                            {\"asset\":\"User Service\",\"responseTime\":200,\"errorRate\":0.01, \"health\":99,\"customers\":200},
-                             {\"asset\":\"Authentication Service\",\"responseTime\":300,\"errorRate\":0.03, \"health\":97,\"customers\":500},
-                             {\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":80}
-                            ]"
-                        | spath input=data
-                        | mvexpand data
-                        | spath input=data
-                        | fields asset errorRate
-                    </query>
-                </search>
-                 <option name="drilldown">none</option>
-              </table>
-           </panel>
-          </row>
-           <row>
-            <panel>
-              <title>System Health (%)</title>
-                <table>
-                  <search>
-                    <query>
-                      | makeresults
-                       | eval data="[
-                             {\"asset\":\"User Service\",\"responseTime\":200,\"errorRate\":0.01, \"health\":99,\"customers\":200},
-                             {\"asset\":\"Authentication Service\",\"responseTime\":300,\"errorRate\":0.03, \"health\":97,\"customers\":500},
-                             {\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":80}
-                            ]"
-                        | spath input=data
-                        | mvexpand data
-                        | spath input=data
-                        | fields asset health
-                      </query>
-                    </search>
-                    <option name="drilldown">none</option>
-                </table>
-            </panel>
-            <panel>
-               <title>Customers Processed</title>
-                <table>
-                  <search>
-                    <query>
-                        | makeresults
-                       | eval data="[
-                             {\"asset\":\"User Service\",\"responseTime\":200,\"errorRate\":0.01, \"health\":99,\"customers\":200},
-                             {\"asset\":\"Authentication Service\",\"responseTime\":300,\"errorRate\":0.03, \"health\":97,\"customers\":500},
-                             {\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":80}
-                            ]"
-                        | spath input=data
-                        | mvexpand data
-                        | spath input=data
-                        | fields asset customers
-                      </query>
-                    </search>
-                    <option name="drilldown">none</option>
-                </table>
-            </panel>
-           </row>
-      </panel>
-    </row>
-   
-    <row>
-      <panel  collapsible="true" expanded="false">
-        <title>Payment Processing Flow Details</title>
-         <row>
-            <panel>
-              <title>Response Time (ms)</title>
-               <table>
-                 <search>
-                   <query>
-                       | makeresults
-                       | eval data="[
-                             {\"asset\":\"Payment Gateway\",\"responseTime\":300,\"errorRate\":0.02, \"health\":98,\"customers\":400},
-                             {\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":450},
-                             {\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":50}
-                            ]"
-                        | spath input=data
-                        | mvexpand data
-                        | spath input=data
-                        | fields asset responseTime
-                     </query>
-                 </search>
-                   <option name="drilldown">none</option>
-               </table>
-             </panel>
-           <panel>
-             <title>Error Rate</title>
-                <table>
-                  <search>
-                    <query>
-                       | makeresults
-                       | eval data="[
-                             {\"asset\":\"Payment Gateway\",\"responseTime\":300,\"errorRate\":0.02, \"health\":98,\"customers\":400},
-                             {\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":450},
-                             {\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":50}
-                            ]"
-                        | spath input=data
-                        | mvexpand data
-                        | spath input=data
-                        | fields asset errorRate
-                      </query>
-                  </search>
-                    <option name="drilldown">none</option>
-               </table>
-           </panel>
-         </row>
-          <row>
-            <panel>
-              <title>System Health (%)</title>
-                <table>
-                  <search>
-                   <query>
-                       | makeresults
-                       | eval data="[
-                             {\"asset\":\"Payment Gateway\",\"responseTime\":300,\"errorRate\":0.02, \"health\":98,\"customers\":400},
-                             {\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":450},
-                             {\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":50}
-                            ]"
-                        | spath input=data
-                        | mvexpand data
-                        | spath input=data
-                        | fields asset health
-                      </query>
-                  </search>
-                  <option name="drilldown">none</option>
-                </table>
-             </panel>
-            <panel>
-               <title>Customers Processed</title>
-                 <table>
-                  <search>
-                    <query>
-                       | makeresults
-                       | eval data="[
-                             {\"asset\":\"Payment Gateway\",\"responseTime\":300,\"errorRate\":0.02, \"health\":98,\"customers\":400},
-                             {\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":450},
-                             {\"asset\":\"Database\",\"responseTime\":100,\"errorRate\":0.01, \"health\":99,\"customers\":50}
-                            ]"
-                        | spath input=data
-                        | mvexpand data
-                        | spath input=data
-                        | fields asset customers
-                      </query>
-                    </search>
-                    <option name="drilldown">none</option>
-               </table>
-            </panel>
-          </row>
-      </panel>
-    </row>
-
-   <row>
-      <panel  collapsible="true" expanded="false">
-        <title>Refund Processing Flow Details</title>
-           <row>
-            <panel>
-              <title>Response Time (ms)</title>
-              <table>
-                  <search>
-                   <query>
-                       | makeresults
-                       | eval data="[
-                             {\"asset\":\"Payment Gateway\",\"responseTime\":350,\"errorRate\":0.02, \"health\":98,\"customers\":100},
-                             {\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":330},
-                             {\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":20}
-                            ]"
-                        | spath input=data
-                        | mvexpand data
-                        | spath input=data
-                        | fields asset responseTime
-                     </query>
-                  </search>
-                    <option name="drilldown">none</option>
-              </table>
-            </panel>
-            <panel>
-               <title>Error Rate</title>
-              <table>
-                <search>
-                    <query>
-                       | makeresults
-                       | eval data="[
-                             {\"asset\":\"Payment Gateway\",\"responseTime\":350,\"errorRate\":0.02, \"health\":98,\"customers\":100},
-                             {\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":330},
-                             {\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":20}
-                            ]"
-                        | spath input=data
-                        | mvexpand data
-                        | spath input=data
-                        | fields asset errorRate
-                     </query>
-                  </search>
-                 <option name="drilldown">none</option>
-              </table>
-            </panel>
-           </row>
-           <row>
-             <panel>
-              <title>System Health (%)</title>
-              <table>
-                <search>
-                    <query>
-                       | makeresults
-                       | eval data="[
-                             {\"asset\":\"Payment Gateway\",\"responseTime\":350,\"errorRate\":0.02, \"health\":98,\"customers\":100},
-                             {\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":330},
-                             {\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":20}
-                            ]"
-                        | spath input=data
-                        | mvexpand data
-                        | spath input=data
-                        | fields asset health
-                      </query>
-                  </search>
-                  <option name="drilldown">none</option>
-              </table>
-             </panel>
-            <panel>
-              <title>Customers Processed</title>
-              <table>
-                <search>
-                    <query>
-                       | makeresults
-                       | eval data="[
-                             {\"asset\":\"Payment Gateway\",\"responseTime\":350,\"errorRate\":0.02, \"health\":98,\"customers\":100},
-                             {\"asset\":\"Accounting Service\",\"responseTime\":450,\"errorRate\":0.04, \"health\":96,\"customers\":330},
-                             {\"asset\":\"Database\",\"responseTime\":150,\"errorRate\":0.005, \"health\":99.5,\"customers\":20}
-                            ]"
-                        | spath input=data
-                        | mvexpand data
-                        | spath input=data
-                        | fields asset customers
-                      </query>
-                    </search>
-                     <option name="drilldown">none</option>
-               </table>
-            </panel>
-          </row>
       </panel>
     </row>
 </dashboard>
