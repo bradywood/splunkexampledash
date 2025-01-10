@@ -1,604 +1,577 @@
 <dashboard version="1.1" script="drilldown.js">
-  <label>Business Flow Monitoring (Structured)</label>
-  <description>Dashboard with 5 flows, business metrics in row 1, and asset summaries in row 2.</description>
+    <label>Business Flow Monitoring (Structured)</label>
+    <description>Dashboard with 5 flows, business metrics in row 1, and asset summaries in row 2.</description>
 
-  <!-- Base Searches -->
-  <search id="base_search_flow1">
-    <query>
-      | makeresults 
-      | eval flow="Order Processing", total_customers=1230, avg_processing_time=1500, customer_errors=25, customer_types="New,Repeat", services_running=10, throughput=250, response_time=300, error_rate=0.02
-    </query>
-  </search>
-  <search id="base_search_flow2">
-    <query>
-      | makeresults 
-      | eval flow="Account Creation", total_customers=780, avg_processing_time=800, customer_errors=15, customer_types="Standard,Premium", services_running=8, throughput=150, response_time=200, error_rate=0.01
-    </query>
-  </search>
+    <!-- Base Searches -->
+    <search id="base_search_flow1">
+        <query>
+            | makeresults
+            | eval flow="Order Processing", total_customers=1230, avg_processing_time=1500, customer_errors=25, customer_types="New,Repeat", services_running=10, throughput=250, response_time=300, error_rate=0.02
+        </query>
+    </search>
+    <search id="base_search_flow2">
+        <query>
+            | makeresults
+            | eval flow="Account Creation", total_customers=780, avg_processing_time=800, customer_errors=15, customer_types="Standard,Premium", services_running=8, throughput=150, response_time=200, error_rate=0.01
+        </query>
+    </search>
     <search id="base_search_flow3">
-    <query>
-      | makeresults 
-      | eval flow="Payment Processing", total_customers=900, avg_processing_time=950, customer_errors=30, customer_types="Card,Direct", services_running=12, throughput=300, response_time=350, error_rate=0.03
-    </query>
-  </search>
-     <search id="base_search_flow4">
-    <query>
-      | makeresults 
-      | eval flow="Refund Processing", total_customers=450, avg_processing_time=1200, customer_errors=10, customer_types="Credit,Refund", services_running=7, throughput=100, response_time=400, error_rate=0.02
-    </query>
-  </search>
-     <search id="base_search_flow5">
-    <query>
-      | makeresults 
-      | eval flow="Inventory Management", total_customers=670, avg_processing_time=600, customer_errors=5, customer_types="Wholesale,Retail", services_running=9, throughput=200, response_time=250, error_rate=0.01
-    </query>
-  </search>
-
-  <!-- Flow 1 -->
+        <query>
+            | makeresults
+            | eval flow="Payment Processing", total_customers=900, avg_processing_time=950, customer_errors=30, customer_types="Card,Direct", services_running=12, throughput=300, response_time=350, error_rate=0.03
+        </query>
+    </search>
+    <search id="base_search_flow4">
+        <query>
+            | makeresults
+            | eval flow="Refund Processing", total_customers=450, avg_processing_time=1200, customer_errors=10, customer_types="Credit,Refund", services_running=7, throughput=100, response_time=400, error_rate=0.02
+        </query>
+    </search>
+    <search id="base_search_flow5">
+        <query>
+            | makeresults
+            | eval flow="Inventory Management", total_customers=670, avg_processing_time=600, customer_errors=5, customer_types="Wholesale,Retail", services_running=9, throughput=200, response_time=250, error_rate=0.01
+        </query>
+    </search>
+    <!-- Flow Overview Chart -->
     <row>
         <panel>
-          <title>Flow Overview - Customers Processed</title>
-           <chart>
-            <search>
-              <query>
-                | makeresults
-                | eval data="[{\"flow\":\"Order Processing\",\"customers\":1230},{\"flow\":\"Account Creation\",\"customers\":780}, {\"flow\":\"Payment Processing\",\"customers\":900}, {\"flow\":\"Refund Processing\",\"customers\":450},{\"flow\":\"Inventory Management\",\"customers\":670}]"
-                | spath input=data
-                | mvexpand data
-                | spath input=data
-                | fields flow customers
-              </query>
-            </search>
-              <option name="charting.chart">column</option>
-            <option name="charting.legend.placement">none</option>
-           <option name="charting.axisTitleX.visibility">collapsed</option>
-        </chart>
-        </panel>
-      </row>
-  <row>
-    <panel>
-       <title>Order Processing Flow Business Metrics</title>
-       <single>
-        <search base="base_search_flow1">
-           <query>
-             | fields total_customers
-           </query>
-         </search>
-          <option name="prefix">Total Customers: </option>
-       </single>
-    </panel>
-    <panel>
-       <title>Order Processing Processing Time</title>
-       <single>
-        <search base="base_search_flow1">
-           <query>
-             | fields avg_processing_time
-           </query>
-         </search>
-           <option name="prefix">Avg. Processing Time: </option>
-            <option name="unit">ms</option>
-       </single>
-    </panel>
-     <panel>
-       <title>Order Processing Customer Errors</title>
-        <single>
-         <search base="base_search_flow1">
-            <query>
-              | fields customer_errors
-            </query>
-          </search>
-           <option name="prefix">Customer Errors: </option>
-        </single>
-    </panel>
-      <panel>
-       <title>Order Processing Customer Types</title>
-        <single>
-          <search base="base_search_flow1">
-            <query>
-              | fields customer_types
-            </query>
-           </search>
-           <option name="prefix">Customer Types: </option>
-         </single>
-       </panel>
-      <panel>
-          <title>Order Processing Flow Name</title>
-          <single>
-            <search base="base_search_flow1">
-                <query>
-                    | fields flow
-                </query>
-            </search>
-            <option name="prefix">Flow Name: </option>
-         </single>
-       </panel>
-  </row>
-  <row>
-      <panel>
-          <title>Order Processing Running Services</title>
-          <chart>
-            <search base="base_search_flow1">
-                <query>
-                  | timechart span=1m avg(services_running)
-                </query>
-              </search>
-              <option name="charting.chart">sparkline</option>
-            <option name="charting.axisTitleX.visibility">collapsed</option>
-           </chart>
-      </panel>
-     <panel>
-          <title>Order Processing Throughput</title>
-          <chart>
-            <search base="base_search_flow1">
-                 <query>
-                    | timechart span=1m avg(throughput)
-                 </query>
-             </search>
-            <option name="charting.chart">sparkline</option>
-              <option name="charting.axisTitleX.visibility">collapsed</option>
-           </chart>
-        </panel>
-      <panel>
-          <title>Order Processing Response Time</title>
-          <chart>
-             <search base="base_search_flow1">
-                <query>
-                     | timechart span=1m avg(response_time)
-                 </query>
-              </search>
-              <option name="charting.chart">sparkline</option>
+            <title>Flow Overview - Customers Processed</title>
+            <chart>
+                <search>
+                    <query>
+                        | makeresults
+                        | eval data="[{\"flow\":\"Order Processing\",\"customers\":1230},{\"flow\":\"Account Creation\",\"customers\":780}, {\"flow\":\"Payment Processing\",\"customers\":900}, {\"flow\":\"Refund Processing\",\"customers\":450},{\"flow\":\"Inventory Management\",\"customers\":670}]"
+                        | spath input=data
+                        | mvexpand data
+                        | spath input=data
+                        | fields flow customers
+                    </query>
+                </search>
+               <option name="charting.chart">column</option>
+                 <option name="charting.legend.placement">none</option>
                 <option name="charting.axisTitleX.visibility">collapsed</option>
-           </chart>
+            </chart>
         </panel>
-         <panel>
-          <title>Order Processing Error Rate</title>
-          <chart>
-            <search base="base_search_flow1">
-              <query>
-                  | timechart span=1m avg(error_rate)
-              </query>
-            </search>
-            <option name="charting.chart">sparkline</option>
-               <option name="charting.axisTitleX.visibility">collapsed</option>
-          </chart>
-      </panel>
-  </row>
+    </row>
 
-  <!-- Flow 2 -->
+    <!-- Flow 1 -->
     <row>
-      <panel>
-       <title>Account Creation Flow Business Metrics</title>
-       <single>
-        <search base="base_search_flow2">
-           <query>
-             | fields total_customers
-           </query>
-         </search>
-          <option name="prefix">Total Customers: </option>
-       </single>
-    </panel>
-    <panel>
-       <title>Account Creation Processing Time</title>
-       <single>
-        <search base="base_search_flow2">
-           <query>
-             | fields avg_processing_time
-           </query>
-         </search>
-           <option name="prefix">Avg. Processing Time: </option>
-             <option name="unit">ms</option>
-       </single>
-    </panel>
-     <panel>
-       <title>Account Creation Customer Errors</title>
-        <single>
-         <search base="base_search_flow2">
-            <query>
-              | fields customer_errors
-            </query>
-          </search>
-           <option name="prefix">Customer Errors: </option>
-        </single>
-    </panel>
-      <panel>
-       <title>Account Creation Customer Types</title>
-        <single>
-          <search base="base_search_flow2">
-            <query>
-              | fields customer_types
-            </query>
-           </search>
-            <option name="prefix">Customer Types: </option>
-         </single>
-       </panel>
-      <panel>
-          <title>Account Creation Flow Name</title>
-          <single>
-            <search base="base_search_flow2">
-                <query>
-                    | fields flow
-                </query>
-            </search>
-            <option name="prefix">Flow Name: </option>
-         </single>
-       </panel>
-  </row>
-  <row>
-      <panel>
-          <title>Account Creation Running Services</title>
-          <chart>
-            <search base="base_search_flow2">
-                <query>
-                  | timechart span=1m avg(services_running)
-                </query>
-              </search>
-              <option name="charting.chart">sparkline</option>
-                <option name="charting.axisTitleX.visibility">collapsed</option>
-           </chart>
-      </panel>
-     <panel>
-          <title>Account Creation Throughput</title>
-          <chart>
-            <search base="base_search_flow2">
-                 <query>
-                    | timechart span=1m avg(throughput)
-                 </query>
-             </search>
-            <option name="charting.chart">sparkline</option>
-             <option name="charting.axisTitleX.visibility">collapsed</option>
-           </chart>
-        </panel>
-      <panel>
-          <title>Account Creation Response Time</title>
-          <chart>
-             <search base="base_search_flow2">
-                <query>
-                     | timechart span=1m avg(response_time)
-                 </query>
-              </search>
-              <option name="charting.chart">sparkline</option>
-               <option name="charting.axisTitleX.visibility">collapsed</option>
-           </chart>
-        </panel>
-         <panel>
-          <title>Account Creation Error Rate</title>
-          <chart>
-            <search base="base_search_flow2">
-              <query>
-                  | timechart span=1m avg(error_rate)
-              </query>
-            </search>
-            <option name="charting.chart">sparkline</option>
-            <option name="charting.axisTitleX.visibility">collapsed</option>
-          </chart>
-      </panel>
-  </row>
-
-  <!-- Flow 3 -->
-    <row>
-      <panel>
-       <title>Payment Processing Flow Business Metrics</title>
-       <single>
-        <search base="base_search_flow3">
-           <query>
-             | fields total_customers
-           </query>
-         </search>
-          <option name="prefix">Total Customers: </option>
-       </single>
-    </panel>
-    <panel>
-       <title>Payment Processing Processing Time</title>
-       <single>
-        <search base="base_search_flow3">
-           <query>
-             | fields avg_processing_time
-           </query>
-         </search>
-           <option name="prefix">Avg. Processing Time: </option>
-           <option name="unit">ms</option>
-       </single>
-    </panel>
-     <panel>
-       <title>Payment Processing Customer Errors</title>
-        <single>
-         <search base="base_search_flow3">
-            <query>
-              | fields customer_errors
-            </query>
-          </search>
-           <option name="prefix">Customer Errors: </option>
-        </single>
-    </panel>
-      <panel>
-       <title>Payment Processing Customer Types</title>
-        <single>
-          <search base="base_search_flow3">
-            <query>
-              | fields customer_types
-            </query>
-           </search>
-            <option name="prefix">Customer Types: </option>
-         </single>
-       </panel>
-       <panel>
-          <title>Payment Processing Flow Name</title>
-          <single>
-            <search base="base_search_flow3">
-                <query>
-                    | fields flow
-                </query>
-            </search>
-           <option name="prefix">Flow Name: </option>
-         </single>
-       </panel>
-  </row>
-  <row>
-      <panel>
-          <title>Payment Processing Running Services</title>
-          <chart>
-            <search base="base_search_flow3">
-                <query>
-                  | timechart span=1m avg(services_running)
-                </query>
-              </search>
-              <option name="charting.chart">sparkline</option>
-                <option name="charting.axisTitleX.visibility">collapsed</option>
-           </chart>
-      </panel>
-     <panel>
-          <title>Payment Processing Throughput</title>
-          <chart>
-            <search base="base_search_flow3">
-                 <query>
-                    | timechart span=1m avg(throughput)
-                 </query>
-             </search>
-            <option name="charting.chart">sparkline</option>
-               <option name="charting.axisTitleX.visibility">collapsed</option>
-           </chart>
-        </panel>
-      <panel>
-          <title>Payment Processing Response Time</title>
-          <chart>
-             <search base="base_search_flow3">
-                <query>
-                     | timechart span=1m avg(response_time)
-                 </query>
-              </search>
-              <option name="charting.chart">sparkline</option>
-                <option name="charting.axisTitleX.visibility">collapsed</option>
-           </chart>
-        </panel>
-         <panel>
-          <title>Payment Processing Error Rate</title>
-          <chart>
-            <search base="base_search_flow3">
-              <query>
-                  | timechart span=1m avg(error_rate)
-              </query>
-            </search>
-            <option name="charting.chart">sparkline</option>
-             <option name="charting.axisTitleX.visibility">collapsed</option>
-          </chart>
-      </panel>
-  </row>
-   <!-- Flow 4 -->
-    <row>
-      <panel>
-       <title>Refund Processing Flow Business Metrics</title>
-       <single>
-        <search base="base_search_flow4">
-           <query>
-             | fields total_customers
-           </query>
-         </search>
-          <option name="prefix">Total Customers: </option>
-       </single>
-    </panel>
-    <panel>
-       <title>Refund Processing Processing Time</title>
-       <single>
-        <search base="base_search_flow4">
-           <query>
-             | fields avg_processing_time
-           </query>
-         </search>
-           <option name="prefix">Avg. Processing Time: </option>
-             <option name="unit">ms</option>
-       </single>
-    </panel>
-     <panel>
-       <title>Refund Processing Customer Errors</title>
-        <single>
-         <search base="base_search_flow4">
-            <query>
-              | fields customer_errors
-            </query>
-          </search>
-           <option name="prefix">Customer Errors: </option>
-        </single>
-    </panel>
-      <panel>
-       <title>Refund Processing Customer Types</title>
-        <single>
-          <search base="base_search_flow4">
-            <query>
-              | fields customer_types
-            </query>
-           </search>
-           <option name="prefix">Customer Types: </option>
-         </single>
-       </panel>
         <panel>
+            <title>Order Processing Flow Business Metrics - Total Customers</title>
+            <single>
+                <search base="base_search_flow1">
+                    <query>
+                        | fields total_customers
+                    </query>
+                </search>
+             </single>
+        </panel>
+        <panel>
+            <title>Order Processing Processing Time (ms)</title>
+            <single>
+                <search base="base_search_flow1">
+                    <query>
+                        | fields avg_processing_time
+                    </query>
+                </search>
+            </single>
+        </panel>
+        <panel>
+            <title>Order Processing Customer Errors</title>
+            <single>
+                <search base="base_search_flow1">
+                    <query>
+                        | fields customer_errors
+                    </query>
+                </search>
+            </single>
+        </panel>
+        <panel>
+            <title>Order Processing Customer Types</title>
+            <single>
+                <search base="base_search_flow1">
+                    <query>
+                        | fields customer_types
+                    </query>
+                </search>
+            </single>
+        </panel>
+         <panel>
+            <title>Order Processing Flow Name</title>
+            <single>
+              <search base="base_search_flow1">
+                  <query>
+                      | fields flow
+                  </query>
+                </search>
+              </single>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Order Processing Running Services</title>
+            <chart>
+                <search base="base_search_flow1">
+                    <query>
+                        | timechart span=1m avg(services_running)
+                    </query>
+                </search>
+                <option name="charting.chart">sparkline</option>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Order Processing Throughput</title>
+            <chart>
+                <search base="base_search_flow1">
+                    <query>
+                        | timechart span=1m avg(throughput)
+                    </query>
+                </search>
+                <option name="charting.chart">sparkline</option>
+                 <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Order Processing Response Time</title>
+            <chart>
+                <search base="base_search_flow1">
+                    <query>
+                        | timechart span=1m avg(response_time)
+                    </query>
+                </search>
+                 <option name="charting.chart">sparkline</option>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Order Processing Error Rate</title>
+            <chart>
+                <search base="base_search_flow1">
+                    <query>
+                        | timechart span=1m avg(error_rate)
+                    </query>
+                </search>
+                 <option name="charting.chart">sparkline</option>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+    </row>
+
+    <!-- Flow 2 -->
+    <row>
+        <panel>
+            <title>Account Creation Flow Business Metrics - Total Customers</title>
+            <single>
+                <search base="base_search_flow2">
+                    <query>
+                        | fields total_customers
+                    </query>
+                </search>
+            </single>
+        </panel>
+        <panel>
+            <title>Account Creation Processing Time (ms)</title>
+            <single>
+                <search base="base_search_flow2">
+                    <query>
+                        | fields avg_processing_time
+                    </query>
+                </search>
+            </single>
+        </panel>
+        <panel>
+            <title>Account Creation Customer Errors</title>
+            <single>
+                <search base="base_search_flow2">
+                    <query>
+                        | fields customer_errors
+                    </query>
+                </search>
+            </single>
+        </panel>
+        <panel>
+            <title>Account Creation Customer Types</title>
+            <single>
+                <search base="base_search_flow2">
+                    <query>
+                        | fields customer_types
+                    </query>
+                </search>
+            </single>
+        </panel>
+         <panel>
+            <title>Account Creation Flow Name</title>
+            <single>
+              <search base="base_search_flow2">
+                  <query>
+                      | fields flow
+                  </query>
+                </search>
+           </single>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Account Creation Running Services</title>
+            <chart>
+                <search base="base_search_flow2">
+                    <query>
+                        | timechart span=1m avg(services_running)
+                    </query>
+                </search>
+                <option name="charting.chart">sparkline</option>
+                 <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Account Creation Throughput</title>
+            <chart>
+                <search base="base_search_flow2">
+                    <query>
+                        | timechart span=1m avg(throughput)
+                    </query>
+                </search>
+                 <option name="charting.chart">sparkline</option>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Account Creation Response Time</title>
+            <chart>
+                <search base="base_search_flow2">
+                    <query>
+                        | timechart span=1m avg(response_time)
+                    </query>
+                </search>
+                 <option name="charting.chart">sparkline</option>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Account Creation Error Rate</title>
+            <chart>
+                <search base="base_search_flow2">
+                    <query>
+                        | timechart span=1m avg(error_rate)
+                    </query>
+                </search>
+                <option name="charting.chart">sparkline</option>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+    </row>
+
+    <!-- Flow 3 -->
+    <row>
+        <panel>
+            <title>Payment Processing Flow Business Metrics - Total Customers</title>
+            <single>
+                <search base="base_search_flow3">
+                    <query>
+                        | fields total_customers
+                    </query>
+                </search>
+            </single>
+        </panel>
+        <panel>
+            <title>Payment Processing Processing Time (ms)</title>
+            <single>
+                <search base="base_search_flow3">
+                    <query>
+                        | fields avg_processing_time
+                    </query>
+                </search>
+            </single>
+        </panel>
+        <panel>
+            <title>Payment Processing Customer Errors</title>
+            <single>
+                <search base="base_search_flow3">
+                    <query>
+                        | fields customer_errors
+                    </query>
+                </search>
+            </single>
+        </panel>
+        <panel>
+            <title>Payment Processing Customer Types</title>
+            <single>
+                <search base="base_search_flow3">
+                    <query>
+                        | fields customer_types
+                    </query>
+                </search>
+            </single>
+        </panel>
+         <panel>
+            <title>Payment Processing Flow Name</title>
+            <single>
+              <search base="base_search_flow3">
+                <query>
+                  | fields flow
+                </query>
+              </search>
+          </single>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Payment Processing Running Services</title>
+            <chart>
+                <search base="base_search_flow3">
+                    <query>
+                        | timechart span=1m avg(services_running)
+                    </query>
+                </search>
+                <option name="charting.chart">sparkline</option>
+                 <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Payment Processing Throughput</title>
+            <chart>
+                <search base="base_search_flow3">
+                    <query>
+                        | timechart span=1m avg(throughput)
+                    </query>
+                </search>
+                <option name="charting.chart">sparkline</option>
+                 <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Payment Processing Response Time</title>
+            <chart>
+                <search base="base_search_flow3">
+                    <query>
+                        | timechart span=1m avg(response_time)
+                    </query>
+                </search>
+                 <option name="charting.chart">sparkline</option>
+                 <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Payment Processing Error Rate</title>
+            <chart>
+                <search base="base_search_flow3">
+                    <query>
+                        | timechart span=1m avg(error_rate)
+                    </query>
+                </search>
+               <option name="charting.chart">sparkline</option>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+    </row>
+
+    <!-- Flow 4 -->
+    <row>
+        <panel>
+             <title>Refund Processing Flow Business Metrics - Total Customers</title>
+            <single>
+                <search base="base_search_flow4">
+                    <query>
+                        | fields total_customers
+                    </query>
+                </search>
+            </single>
+        </panel>
+        <panel>
+             <title>Refund Processing Processing Time (ms)</title>
+            <single>
+                <search base="base_search_flow4">
+                    <query>
+                        | fields avg_processing_time
+                    </query>
+                </search>
+            </single>
+        </panel>
+        <panel>
+             <title>Refund Processing Customer Errors</title>
+            <single>
+                <search base="base_search_flow4">
+                    <query>
+                        | fields customer_errors
+                    </query>
+                </search>
+            </single>
+        </panel>
+        <panel>
+            <title>Refund Processing Customer Types</title>
+            <single>
+                <search base="base_search_flow4">
+                    <query>
+                        | fields customer_types
+                    </query>
+                </search>
+            </single>
+        </panel>
+         <panel>
           <title>Refund Processing Flow Name</title>
           <single>
             <search base="base_search_flow4">
-                <query>
-                    | fields flow
-                </query>
-            </search>
-            <option name="prefix">Flow Name: </option>
-         </single>
-       </panel>
-  </row>
-  <row>
-      <panel>
-          <title>Refund Processing Running Services</title>
-          <chart>
-            <search base="base_search_flow4">
-                <query>
-                  | timechart span=1m avg(services_running)
-                </query>
-              </search>
-              <option name="charting.chart">sparkline</option>
-                 <option name="charting.axisTitleX.visibility">collapsed</option>
-           </chart>
-      </panel>
-     <panel>
-          <title>Refund Processing Throughput</title>
-          <chart>
-            <search base="base_search_flow4">
-                 <query>
-                    | timechart span=1m avg(throughput)
-                 </query>
-             </search>
-            <option name="charting.chart">sparkline</option>
-              <option name="charting.axisTitleX.visibility">collapsed</option>
-           </chart>
-        </panel>
-      <panel>
-          <title>Refund Processing Response Time</title>
-          <chart>
-             <search base="base_search_flow4">
-                <query>
-                     | timechart span=1m avg(response_time)
-                 </query>
-              </search>
-              <option name="charting.chart">sparkline</option>
-              <option name="charting.axisTitleX.visibility">collapsed</option>
-           </chart>
-        </panel>
-         <panel>
-          <title>Refund Processing Error Rate</title>
-          <chart>
-            <search base="base_search_flow4">
               <query>
-                  | timechart span=1m avg(error_rate)
+                | fields flow
               </query>
             </search>
-            <option name="charting.chart">sparkline</option>
-               <option name="charting.axisTitleX.visibility">collapsed</option>
-          </chart>
-      </panel>
-  </row>
-     <!-- Flow 5 -->
+          </single>
+        </panel>
+    </row>
     <row>
-      <panel>
-       <title>Inventory Management Flow Business Metrics</title>
-       <single>
-        <search base="base_search_flow5">
-           <query>
-             | fields total_customers
-           </query>
-         </search>
-          <option name="prefix">Total Customers: </option>
-       </single>
-    </panel>
-    <panel>
-       <title>Inventory Management Processing Time</title>
-       <single>
-        <search base="base_search_flow5">
-           <query>
-             | fields avg_processing_time
-           </query>
-         </search>
-           <option name="prefix">Avg. Processing Time: </option>
-            <option name="unit">ms</option>
-       </single>
-    </panel>
-     <panel>
-       <title>Inventory Management Customer Errors</title>
-        <single>
-         <search base="base_search_flow5">
-            <query>
-              | fields customer_errors
-            </query>
-          </search>
-           <option name="prefix">Customer Errors: </option>
-        </single>
-    </panel>
-      <panel>
-       <title>Inventory Management Customer Types</title>
-        <single>
-          <search base="base_search_flow5">
-            <query>
-              | fields customer_types
-            </query>
-           </search>
-           <option name="prefix">Customer Types: </option>
-         </single>
-       </panel>
         <panel>
-          <title>Inventory Management Flow Name</title>
-          <single>
-            <search base="base_search_flow5">
-                <query>
-                    | fields flow
-                </query>
-            </search>
-           <option name="prefix">Flow Name: </option>
-         </single>
-       </panel>
-  </row>
-  <row>
-      <panel>
-          <title>Inventory Management Running Services</title>
-          <chart>
-            <search base="base_search_flow5">
-                <query>
-                  | timechart span=1m avg(services_running)
-                </query>
-              </search>
-              <option name="charting.chart">sparkline</option>
-              <option name="charting.axisTitleX.visibility">collapsed</option>
-           </chart>
-      </panel>
-     <panel>
-          <title>Inventory Management Throughput</title>
-          <chart>
-            <search base="base_search_flow5">
-                 <query>
-                    | timechart span=1m avg(throughput)
-                 </query>
-             </search>
-            <option name="charting.chart">sparkline</option>
-               <option name="charting.axisTitleX.visibility">collapsed</option>
-           </chart>
-        </panel>
-      <panel>
-          <title>Inventory Management Response Time</title>
-          <chart>
-             <search base="base_search_flow5">
-                <query>
-                     | timechart span=1m avg(response_time)
-                 </query>
-              </search>
-              <option name="charting.chart">sparkline</option>
+            <title>Refund Processing Running Services</title>
+            <chart>
+                <search base="base_search_flow4">
+                    <query>
+                        | timechart span=1m avg(services_running)
+                    </query>
+                </search>
+                <option name="charting.chart">sparkline</option>
                  <option name="charting.axisTitleX.visibility">collapsed</option>
-           </chart>
+            </chart>
+        </panel>
+        <panel>
+            <title>Refund Processing Throughput</title>
+            <chart>
+                <search base="base_search_flow4">
+                    <query>
+                        | timechart span=1m avg(throughput)
+                    </query>
+                </search>
+               <option name="charting.chart">sparkline</option>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Refund Processing Response Time</title>
+            <chart>
+                <search base="base_search_flow4">
+                    <query>
+                        | timechart span=1m avg(response_time)
+                    </query>
+                </search>
+                 <option name="charting.chart">sparkline</option>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Refund Processing Error Rate</title>
+            <chart>
+                <search base="base_search_flow4">
+                    <query>
+                        | timechart span=1m avg(error_rate)
+                    </query>
+                </search>
+               <option name="charting.chart">sparkline</option>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+    </row>
+
+    <!-- Flow 5 -->
+    <row>
+        <panel>
+            <title>Inventory Management Flow Business Metrics - Total Customers</title>
+            <single>
+                <search base="base_search_flow5">
+                    <query>
+                        | fields total_customers
+                    </query>
+                </search>
+            </single>
+        </panel>
+        <panel>
+              <title>Inventory Management Processing Time (ms)</title>
+            <single>
+                <search base="base_search_flow5">
+                    <query>
+                        | fields avg_processing_time
+                    </query>
+                </search>
+            </single>
+        </panel>
+        <panel>
+             <title>Inventory Management Customer Errors</title>
+            <single>
+                <search base="base_search_flow5">
+                    <query>
+                        | fields customer_errors
+                    </query>
+                </search>
+            </single>
+        </panel>
+        <panel>
+              <title>Inventory Management Customer Types</title>
+            <single>
+                <search base="base_search_flow5">
+                    <query>
+                        | fields customer_types
+                    </query>
+                </search>
+            </single>
         </panel>
          <panel>
-          <title>Inventory Management Error Rate</title>
-          <chart>
+           <title>Inventory Management Flow Name</title>
+           <single>
             <search base="base_search_flow5">
               <query>
-                  | timechart span=1m avg(error_rate)
+                | fields flow
               </query>
             </search>
-            <option name="charting.chart">sparkline</option>
-            <option name="charting.axisTitleX.visibility">collapsed</option>
-          </chart>
-      </panel>
-  </row>
+           </single>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Inventory Management Running Services</title>
+            <chart>
+                <search base="base_search_flow5">
+                    <query>
+                        | timechart span=1m avg(services_running)
+                    </query>
+                </search>
+               <option name="charting.chart">sparkline</option>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Inventory Management Throughput</title>
+            <chart>
+                <search base="base_search_flow5">
+                    <query>
+                        | timechart span=1m avg(throughput)
+                    </query>
+                </search>
+                <option name="charting.chart">sparkline</option>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Inventory Management Response Time</title>
+            <chart>
+                <search base="base_search_flow5">
+                    <query>
+                        | timechart span=1m avg(response_time)
+                    </query>
+                </search>
+               <option name="charting.chart">sparkline</option>
+                 <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+        <panel>
+            <title>Inventory Management Error Rate</title>
+            <chart>
+                <search base="base_search_flow5">
+                    <query>
+                        | timechart span=1m avg(error_rate)
+                    </query>
+                </search>
+                <option name="charting.chart">sparkline</option>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+            </chart>
+        </panel>
+    </row>
 </dashboard>
