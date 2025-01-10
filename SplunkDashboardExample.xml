@@ -122,65 +122,65 @@
         <panel>
             <title>Order Processing Running Services</title>
             <single>
-                <search base="base_search_flow1">
+               <search base="base_search_flow1">
                     <query>
                          | timechart span=1m avg(services_running)
                          | fields  avg_services_running
                     </query>
                 </search>
-                <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                 <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                  <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                 <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
         <panel>
             <title>Order Processing Throughput</title>
-            <single>
-                <search base="base_search_flow1">
+             <single>
+               <search base="base_search_flow1">
                     <query>
                          | timechart span=1m avg(throughput)
                          | fields avg_throughput
                     </query>
                 </search>
-                <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                 <option name="single.useColors">1</option>
-                  <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                 <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                 <option name="useColors">1</option>
+                  <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
         <panel>
             <title>Order Processing Response Time</title>
-            <single>
-                <search base="base_search_flow1">
+           <single>
+               <search base="base_search_flow1">
                     <query>
                         | timechart span=1m avg(response_time)
                         | fields avg_response_time
                     </query>
                 </search>
-                <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                 <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                  <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                 <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
         <panel>
             <title>Order Processing Error Rate</title>
-            <single>
+             <single>
                 <search base="base_search_flow1">
                     <query>
                         | timechart span=1m avg(error_rate)
                         | fields avg_error_rate
                     </query>
                 </search>
-                <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                  <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                 <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                  <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
     </row>
@@ -242,65 +242,65 @@
         <panel>
             <title>Account Creation Running Services</title>
              <single>
-                <search base="base_search_flow2">
+                 <search base="base_search_flow2">
                     <query>
-                        | timechart span=1m avg(services_running)
+                         | timechart span=1m avg(services_running)
                          | fields avg_services_running
-                    </query>
+                     </query>
                 </search>
-                 <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                 <option name="single.useColors">1</option>
-                <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                 <option name="useColors">1</option>
+                <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
         <panel>
             <title>Account Creation Throughput</title>
-            <single>
+              <single>
                 <search base="base_search_flow2">
                     <query>
-                        | timechart span=1m avg(throughput)
+                         | timechart span=1m avg(throughput)
                          | fields avg_throughput
-                    </query>
+                     </query>
                 </search>
-                 <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                 <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                 <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                 <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
         <panel>
             <title>Account Creation Response Time</title>
-           <single>
-                <search base="base_search_flow2">
+            <single>
+                 <search base="base_search_flow2">
                     <query>
-                       | timechart span=1m avg(response_time)
-                        | fields avg_response_time
-                    </query>
+                         | timechart span=1m avg(response_time)
+                         | fields avg_response_time
+                     </query>
                 </search>
-                <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                  <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
         <panel>
             <title>Account Creation Error Rate</title>
-            <single>
+             <single>
                 <search base="base_search_flow2">
                     <query>
                          | timechart span=1m avg(error_rate)
                          | fields avg_error_rate
                     </query>
                 </search>
-                 <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                 <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
     </row>
@@ -347,7 +347,7 @@
                 </search>
             </single>
         </panel>
-        <panel>
+       <panel>
             <title>Payment Processing Flow Name</title>
             <single>
                 <search base="base_search_flow3">
@@ -362,33 +362,33 @@
         <panel>
             <title>Payment Processing Running Services</title>
             <single>
-                <search base="base_search_flow3">
+                 <search base="base_search_flow3">
                     <query>
-                        | timechart span=1m avg(services_running)
+                         | timechart span=1m avg(services_running)
                          | fields avg_services_running
-                    </query>
+                     </query>
                 </search>
-                  <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                  <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                  <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                  <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
         <panel>
             <title>Payment Processing Throughput</title>
             <single>
-                <search base="base_search_flow3">
+               <search base="base_search_flow3">
                     <query>
-                       | timechart span=1m avg(throughput)
-                        | fields avg_throughput
+                         | timechart span=1m avg(throughput)
+                         | fields avg_throughput
                      </query>
                 </search>
-                <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                 <option name="single.useColors">1</option>
-                  <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                 <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                 <option name="useColors">1</option>
+                  <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
         <panel>
@@ -400,27 +400,27 @@
                         | fields avg_response_time
                      </query>
                 </search>
-                <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                 <option name="single.useColors">1</option>
-                  <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                 <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                 <option name="useColors">1</option>
+                  <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
         <panel>
             <title>Payment Processing Error Rate</title>
             <single>
-               <search base="base_search_flow3">
+                <search base="base_search_flow3">
                     <query>
-                        | timechart span=1m avg(error_rate)
+                         | timechart span=1m avg(error_rate)
                          | fields avg_error_rate
                     </query>
                 </search>
-                 <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                 <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
     </row>
@@ -467,7 +467,7 @@
                 </search>
             </single>
         </panel>
-         <panel>
+        <panel>
             <title>Refund Processing Flow Name</title>
             <single>
                 <search base="base_search_flow4">
@@ -481,74 +481,74 @@
     <row>
         <panel>
             <title>Refund Processing Running Services</title>
-             <single>
-                <search base="base_search_flow4">
+            <single>
+                 <search base="base_search_flow4">
                     <query>
                         | timechart span=1m avg(services_running)
                         | fields avg_services_running
-                    </query>
+                     </query>
                 </search>
-                 <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                  <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
         <panel>
             <title>Refund Processing Throughput</title>
-             <single>
+           <single>
                 <search base="base_search_flow4">
                     <query>
-                        | timechart span=1m avg(throughput)
+                         | timechart span=1m avg(throughput)
                          | fields avg_throughput
                      </query>
                 </search>
-                  <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                 <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                  <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                 <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
         <panel>
             <title>Refund Processing Response Time</title>
-             <single>
-                <search base="base_search_flow4">
+            <single>
+                 <search base="base_search_flow4">
                     <query>
-                        | timechart span=1m avg(response_time)
+                       | timechart span=1m avg(response_time)
                         | fields avg_response_time
-                    </query>
+                     </query>
                 </search>
-                  <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                  <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                  <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
         <panel>
             <title>Refund Processing Error Rate</title>
-             <single>
+            <single>
                 <search base="base_search_flow4">
                     <query>
-                       | timechart span=1m avg(error_rate)
-                       | fields avg_error_rate
-                     </query>
+                         | timechart span=1m avg(error_rate)
+                         | fields avg_error_rate
+                    </query>
                 </search>
-                 <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                 <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                 <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                  <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
     </row>
 
     <!-- Flow 5 -->
     <row>
-         <panel>
-            <title>Inventory Management Flow Business Metrics - Total Customers</title>
+        <panel>
+             <title>Inventory Management Flow Business Metrics - Total Customers</title>
             <single>
                 <search base="base_search_flow5">
                     <query>
@@ -604,15 +604,15 @@
              <single>
                 <search base="base_search_flow5">
                     <query>
-                       | timechart span=1m avg(services_running)
+                        | timechart span=1m avg(services_running)
                         | fields avg_services_running
                      </query>
                 </search>
-                 <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                 <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                 <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                  <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
         <panel>
@@ -620,47 +620,47 @@
             <single>
                 <search base="base_search_flow5">
                     <query>
-                       | timechart span=1m avg(throughput)
-                        | fields avg_throughput
+                         | timechart span=1m avg(throughput)
+                         | fields avg_throughput
                      </query>
                 </search>
-                 <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                 <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                  <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
-         <panel>
+        <panel>
             <title>Inventory Management Response Time</title>
-           <single>
-                 <search base="base_search_flow5">
+             <single>
+                <search base="base_search_flow5">
                     <query>
-                         | timechart span=1m avg(response_time)
-                         | fields avg_response_time
+                       | timechart span=1m avg(response_time)
+                        | fields avg_response_time
                      </query>
                 </search>
-                <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                 <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                  <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                  <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
         <panel>
             <title>Inventory Management Error Rate</title>
-             <single>
-                 <search base="base_search_flow5">
+            <single>
+                <search base="base_search_flow5">
                     <query>
                          | timechart span=1m avg(error_rate)
                          | fields avg_error_rate
                      </query>
                 </search>
-                <option name="single.showSparkline">1</option>
-                <option name="single.showTrendIndicator">1</option>
-                <option name="single.trendInterval">1m</option>
-                <option name="single.useColors">1</option>
-                <option name="single.rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
+                 <option name="showSparkline">1</option>
+                <option name="showTrendIndicator">1</option>
+                <option name="trendInterval">1m</option>
+                <option name="useColors">1</option>
+                <option name="rangeColors">["#006d2c","#31a354","#74c476","#bae4b3","#edf8e9"]</option>
             </single>
         </panel>
     </row>
