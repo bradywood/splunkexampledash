@@ -1,7 +1,7 @@
 <dashboard version="1.1">
     <label>Asset Response Time (95th Percentile)</label>
     <row>
-        <panel>
+        <panel id="asset_search">
              <title>Asset Response Times</title>
              <html>
                 <style>
@@ -111,7 +111,7 @@
                      </script>
 
               </html>
-              <search id="asset_search">
+               <search>
                  <![CDATA[
                     makeresults
                     | eval asset_response=mvzip("Asset A,Asset B,Asset C", "10,25,75")
