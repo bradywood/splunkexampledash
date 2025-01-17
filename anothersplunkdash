@@ -1,100 +1,128 @@
-<dashboard>
+<dashboard version="1.1">
     <label>Asset Response Time (95th Percentile)</label>
     <row>
         <panel>
-          <table>
              <title>Asset Response Times</title>
-             <search>
-               <![CDATA[
-                 makeresults
-                  | eval asset_response=mvzip("Asset A,Asset B,Asset C", "10,25,75")
-                  | mvexpand asset_response
-                  | eval asset = split(asset_response, ",")[0]
-                  | eval response_time = split(asset_response, ",")[1]
-                  | fields asset, response_time
-                  | eval response_time_num=tonumber(response_time)
-                  | eval level=case(response_time_num<=20,"low",response_time_num>20 AND response_time_num<=50, "med", response_time_num>50,"high")
-               ]]>
-              </search>
-              <format type="html">
-                  <style>
-                  .low {
-                     display: inline-block;
-                    border-radius: 5px;
-                    border: 1px solid grey;
-                    background-color: lightgreen;
-                    padding: 10px;
-                    text-align: center;
-                    margin: 5px;
-                  }
-                  .med {
-                    display: inline-block;
-                     border-radius: 5px;
-                     border: 1px solid grey;
-                    background-color: yellow;
-                     padding: 10px;
-                     text-align: center;
-                     margin: 5px;
-                  }
-                  .high {
-                    display: inline-block;
-                    border-radius: 5px;
-                     border: 1px solid grey;
-                    background-color: red;
-                    padding: 10px;
-                    text-align: center;
-                    margin: 5px;
-                  }
+             <html>
+                <style>
+                      .low {
+                         display: inline-block;
+                        border-radius: 5px;
+                        border: 1px solid grey;
+                        background-color: lightgreen;
+                        padding: 10px;
+                        text-align: center;
+                        margin: 5px;
+                      }
+                      .med {
+                        display: inline-block;
+                         border-radius: 5px;
+                         border: 1px solid grey;
+                        background-color: yellow;
+                         padding: 10px;
+                         text-align: center;
+                         margin: 5px;
+                      }
+                      .high {
+                        display: inline-block;
+                        border-radius: 5px;
+                         border: 1px solid grey;
+                        background-color: red;
+                        padding: 10px;
+                        text-align: center;
+                        margin: 5px;
+                      }
+                       .asset-row {
+                         display: flex;
+                         align-items: center;
+                         justify-content: center;
+                      }
+                       .asset-row > div {
+                         display: flex;
+                        align-items: center;
+                       }
+                      .asset-arrow {
+                         font-size: 30px;
+                         padding: 0 30px;
+                       }
+                    </style>
 
-                   .asset-row {
-                     display: flex;
-                     align-items: center;
-                     justify-content: center;
-                  }
-                   .asset-row > div {
-                     display: flex;
-                    align-items: center;
-                   }
-                  .asset-arrow {
-                     font-size: 30px;
-                     padding: 0 30px;
-                   }
-                 </style>
-                <html>
-                  <table>
-                    <tbody>
-                    <tr>
-                       <td>
-                          <div class="asset-row">
-                              <div>
-                                   <div class="$row.level$">
-                                      $row.response_time$
-                                  </div> <p style="margin: 0px;">$row.asset$</p>
-                              </div>
-                               <div class="asset-arrow">
-                                    →
-                                </div>
-                               <div>
-                                    <div class="$row.level$">
-                                      $row.response_time$
-                                    </div> <p style="margin: 0px;">$row.asset$</p>
-                              </div>
-                               <div class="asset-arrow">
-                                    →
-                                </div>
-                               <div>
-                                  <div class="$row.level$">
-                                      $row.response_time$
-                                 </div> <p style="margin: 0px;">$row.asset$</p>
-                              </div>
-                          </div>
-                        </td>
-                    </tr>
-                 </tbody>
-                </table>
-               </html>
-              </format>
-         </table>
+                     <table>
+                        <thead>
+                            <tr>
+                                <th>Assets</th>
+                           </tr>
+                         </thead>
+                         <tbody>
+                            <tr class="asset-row">
+                            <td>
+                                  <div id="asset-data"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                      </table>
+                     <script>
+                          require([
+                             "splunkjs/mvc",
+                             "splunkjs/mvc/simplexml/ready!"
+                              ], function(mvc) {
+
+                                var mySearch = mvc.Components.get("asset_search");
+
+                                var results = mySearch.data("results", {
+                                       count: 0,
+                                       offset: 0
+                                   }).on("data", function() {
+                                        var data = this.data().rows;
+                                        console.log(data)
+
+                                        var html = "";
+
+                                       if (data) {
+                                          data.forEach(function(row, index) {
+
+                                             var asset = row[0];
+                                             var response_time = row[1];
+                                             var level = row[2];
+                                            var cssClass = ""
+                                            if(level == "low")
+                                             cssClass="low"
+                                           if(level == "med")
+                                             cssClass="med"
+                                            if(level == "high")
+                                             cssClass="high"
+
+
+                                             html += '<div>';
+                                                  html += '<div class="'+cssClass+'">' + response_time + '</div>'
+                                                   html += '<p style="margin: 0px;">' + asset + '</p>'
+                                                    html += '</div>';
+                                                     if(index < data.length -1)
+                                                       html +=  '<div class="asset-arrow">→</div>';
+                                          });
+
+
+                                            $("#asset-data").html(html)
+
+                                       }
+                                   });
+                            });
+
+                     </script>
+
+              </html>
+              <search id="asset_search">
+                 <![CDATA[
+                    makeresults
+                    | eval asset_response=mvzip("Asset A,Asset B,Asset C", "10,25,75")
+                    | mvexpand asset_response
+                    | eval asset = split(asset_response, ",")[0]
+                    | eval response_time = split(asset_response, ",")[1]
+                    | fields asset, response_time
+                    | eval response_time_num=tonumber(response_time)
+                    | eval level=case(response_time_num<=20,"low",response_time_num>20 AND response_time_num<=50, "med", response_time_num>50,"high")
+                ]]>
+              </search>
         </panel>
     </row>
    <row>
