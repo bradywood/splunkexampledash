@@ -1,7 +1,21 @@
 <dashboard version="1.1">
     <label>Asset Response Time (95th Percentile)</label>
     <row>
-        <panel id="asset_search">
+      <panel id="asset_search_panel" hidden="true">
+           <search id="asset_search">
+               <![CDATA[
+                    makeresults
+                    | eval asset_response=mvzip("Asset A,Asset B,Asset C", "10,25,75")
+                    | mvexpand asset_response
+                    | eval asset = split(asset_response, ",")[0]
+                    | eval response_time = split(asset_response, ",")[1]
+                    | fields asset, response_time
+                    | eval response_time_num=tonumber(response_time)
+                    | eval level=case(response_time_num<=20,"low",response_time_num>20 AND response_time_num<=50, "med", response_time_num>50,"high")
+                ]]>
+           </search>
+      </panel>
+        <panel>
              <title>Asset Response Times</title>
              <html>
                 <style>
@@ -111,18 +125,6 @@
                      </script>
 
               </html>
-               <search>
-                 <![CDATA[
-                    makeresults
-                    | eval asset_response=mvzip("Asset A,Asset B,Asset C", "10,25,75")
-                    | mvexpand asset_response
-                    | eval asset = split(asset_response, ",")[0]
-                    | eval response_time = split(asset_response, ",")[1]
-                    | fields asset, response_time
-                    | eval response_time_num=tonumber(response_time)
-                    | eval level=case(response_time_num<=20,"low",response_time_num>20 AND response_time_num<=50, "med", response_time_num>50,"high")
-                ]]>
-              </search>
         </panel>
     </row>
    <row>
