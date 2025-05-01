@@ -1,92 +1,170 @@
-<!-- HTML Panel for Splunk Dashboard -->
-<!-- Copy all code between these comments and paste into an HTML panel in your Splunk dashboard -->
+<dashboard>
+  <label>Issue Reporting Dashboard</label>
+  
+  <row>
+    <panel>
+      <title>Issue Report Tool</title>
+      <html>
+        <style>
+          /* These styles will be applied within the Splunk panel */
+          .issue-report-container {
+              font-family: Splunk Platform Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif;
+              padding: 10px;
+          }
+          .issue-report-button {
+              display: inline-block;
+              background-color: #5C9BD1;
+              color: white;
+              padding: 8px 16px;
+              text-decoration: none;
+              border-radius: 4px;
+              font-weight: bold;
+              margin: 5px 0;
+              cursor: pointer;
+          }
+          .issue-report-button:hover {
+              background-color: #3D71A1;
+          }
+          .tooltip {
+              position: relative;
+              display: inline-block;
+              margin-left: 10px;
+              cursor: pointer;
+          }
+          .tooltip .tooltiptext {
+              visibility: hidden;
+              width: 400px;
+              background-color: #333;
+              color: #fff;
+              text-align: left;
+              border-radius: 6px;
+              padding: 10px;
+              position: absolute;
+              z-index: 1;
+              bottom: 125%;
+              left: 50%;
+              transform: translateX(-50%);
+              opacity: 0;
+              transition: opacity 0.3s;
+              font-size: 12px;
+              line-height: 1.5;
+          }
+          .tooltip:hover .tooltiptext {
+              visibility: visible;
+              opacity: 1;
+          }
+          .form-group {
+              margin-bottom: 10px;
+          }
+          .form-group label {
+              display: inline-block;
+              width: 80px;
+              font-weight: bold;
+          }
+          .form-group input {
+              padding: 5px;
+              width: 300px;
+              border: 1px solid #ccc;
+              border-radius: 3px;
+          }
+        </style>
 
-<style>
-    /* These styles will be applied within the Splunk panel */
-    .issue-report-container {
-        font-family: Splunk Platform Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif;
-        padding: 10px;
-    }
-    .issue-report-button {
-        display: inline-block;
-        background-color: #5C9BD1;
-        color: white;
-        padding: 8px 16px;
-        text-decoration: none;
-        border-radius: 4px;
-        font-weight: bold;
-        margin: 5px 0;
-    }
-    .issue-report-button:hover {
-        background-color: #3D71A1;
-    }
-    .tooltip {
-        position: relative;
-        display: inline-block;
-        margin-left: 10px;
-        cursor: pointer;
-    }
-    .tooltip .tooltiptext {
-        visibility: hidden;
-        width: 400px;
-        background-color: #333;
-        color: #fff;
-        text-align: left;
-        border-radius: 6px;
-        padding: 10px;
-        position: absolute;
-        z-index: 1;
-        bottom: 125%;
-        left: 50%;
-        transform: translateX(-50%);
-        opacity: 0;
-        transition: opacity 0.3s;
-        font-size: 12px;
-        line-height: 1.5;
-    }
-    .tooltip:hover .tooltiptext {
-        visibility: visible;
-        opacity: 1;
-    }
-</style>
-
-<div class="issue-report-container">
-    <a class="issue-report-button" href="mailto:?subject=Issue%20Report&body=Flow%3A%0A%0AIssue%20subject%3A%0A%0AIssue%20details%3A%0A%0AIncident%20Reference%20%23%3A%0A%0ASeverity%20and%20Priority%3A%0A%0AWhen%20was%20the%20issue%20first%20identified%3A%0A%0AWhat%20is%20the%20impact%20of%20the%20issue%20in%20terms%20of%3A%0A*%20overall%20dollar%20value%0A*%20customers%20numbers%0A*%20intermittent%0A%0AIs%20the%20functionality%20tested%20in%20a%20lower%20environment%3F%3A%0A%0ASupporting%20details%3A">Report Issue</a>
-    
-    <div class="tooltip">ⓘ
-        <span class="tooltiptext">
-            <strong>Email Template Fields:</strong><br>
-            • Flow<br>
-            • Issue subject<br>
-            • Issue details<br>
-            • Incident Reference #<br>
-            • Severity and Priority<br>
-            • When was the issue first identified<br>
-            • Impact ($ value, customer numbers, intermittent)<br>
-            • Lower environment testing status<br>
-            • Supporting details
-        </span>
-    </div>
-    
-    <script>
-        // Optional: You can add JavaScript here to dynamically populate fields based on Splunk data
-        // For example, to auto-fill incident reference from dashboard token:
-        
-        /*
-        require([
-            'splunkjs/mvc',
-            'jquery'
-        ], function(mvc, $) {
-            var tokens = mvc.Components.get('default');
-            var incidentRef = tokens.get('incident_ref');
+        <div class="issue-report-container">
+          <div class="form-group">
+            <label for="toEmail">To: </label>
+            <input type="text" id="toEmail" value="support@example.com">
+          </div>
+          
+          <div class="form-group">
+            <label for="ccEmail">CC: </label>
+            <input type="text" id="ccEmail" value="manager@example.com">
+          </div>
+          
+          <div class="form-group">
+            <label for="emailSubject">Subject: </label>
+            <input type="text" id="emailSubject" value="Incident Report">
+          </div>
+          
+          <a class="issue-report-button" id="mailtoLink" target="_blank">Report Issue</a>
+          
+          <div class="tooltip">ⓘ
+              <span class="tooltiptext">
+                  <strong>Email Template Fields:</strong><br>
+                  • Flow<br>
+                  • Issue subject<br>
+                  • Issue details<br>
+                  • Incident Reference #<br>
+                  • Severity and Priority<br>
+                  • When was the issue first identified<br>
+                  • Impact ($ value, customer numbers, intermittent)<br>
+                  • Lower environment testing status<br>
+                  • Supporting details
+              </span>
+          </div>
+          
+          <script>
+            // Function to update the mailto link with the form values
+            function updateMailtoLink() {
+              var toEmail = encodeURIComponent(document.getElementById('toEmail').value);
+              var ccEmail = encodeURIComponent(document.getElementById('ccEmail').value);
+              var subject = encodeURIComponent(document.getElementById('emailSubject').value);
+              
+              var bodyContent = "Flow%3A%0A%0AIssue%20subject%3A%0A%0AIssue%20details%3A%0A%0AIncident%20Reference%20%23%3A%0A%0ASeverity%20and%20Priority%3A%0A%0AWhen%20was%20the%20issue%20first%20identified%3A%0A%0AWhat%20is%20the%20impact%20of%20the%20issue%20in%20terms%20of%3A%0A*%20overall%20dollar%20value%0A*%20customers%20numbers%0A*%20intermittent%0A%0AIs%20the%20functionality%20tested%20in%20a%20lower%20environment%3F%3A%0A%0ASupporting%20details%3A";
+              
+              var mailtoUrl = "mailto:" + toEmail + "?cc=" + ccEmail + "&subject=" + subject + "&body=" + bodyContent;
+              
+              var link = document.getElementById('mailtoLink');
+              link.setAttribute('href', mailtoUrl);
+            }
             
-            $('.issue-report-button').on('click', function() {
-                // You could dynamically modify the href here if needed
-                // based on dashboard tokens
+            // Add event listeners to form inputs
+            document.getElementById('toEmail').addEventListener('input', updateMailtoLink);
+            document.getElementById('ccEmail').addEventListener('input', updateMailtoLink);
+            document.getElementById('emailSubject').addEventListener('input', updateMailtoLink);
+            
+            // Initialize the mailto link on page load
+            document.addEventListener('DOMContentLoaded', function() {
+              updateMailtoLink();
+              
+              // Also add click handler for older browsers/Splunk versions
+              document.getElementById('mailtoLink').addEventListener('click', function(e) {
+                updateMailtoLink();
+                var mailtoUrl = this.getAttribute('href');
+                window.open(mailtoUrl, '_blank');
+              });
             });
-        });
-        */
-    </script>
-</div>
-
-<!-- End of HTML Panel code for Splunk Dashboard -->
+          </script>
+        </div>
+      </html>
+    </panel>
+  </row>
+  
+  <!-- Example of additional dashboard panels -->
+  <row>
+    <panel>
+      <title>Recent Incidents</title>
+      <table>
+        <search>
+          <query>index=main sourcetype=incidents | sort - _time | head 10</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">row</option>
+      </table>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <title>Incident Metrics</title>
+      <chart>
+        <search>
+          <query>index=main sourcetype=incidents | timechart count by severity</query>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">line</option>
+      </chart>
+    </panel>
+  </row>
+</dashboard>
