@@ -1,12 +1,33 @@
 <dashboard>
   <label>Issue Reporting Dashboard</label>
   
+  <!-- Input row with single fieldset for all inputs -->
+  <row>
+    <panel>
+      <title>Email Configuration</title>
+      <input type="text" token="support_email">
+        <label>Support Email</label>
+        <default>support@example.com</default>
+      </input>
+      <input type="text" token="manager_email">
+        <label>Manager Email</label>
+        <default>manager@example.com</default>
+      </input>
+      <input type="text" token="incident_id">
+        <label>Incident ID</label>
+        <default></default>
+      </input>
+    </panel>
+  </row>
+  
+  <!-- Report Issue Button Row -->
   <row>
     <panel>
       <title>Issue Report Tool</title>
       <html>
+        <![CDATA[
         <style>
-          /* These styles will be applied within the Splunk panel */
+          /* Splunk-friendly styles */
           .issue-report-container {
               font-family: Splunk Platform Sans, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif;
               padding: 10px;
@@ -19,7 +40,7 @@
               text-decoration: none;
               border-radius: 4px;
               font-weight: bold;
-              margin: 5px 0;
+              margin: 10px 0;
               cursor: pointer;
           }
           .issue-report-button:hover {
@@ -53,39 +74,30 @@
               visibility: visible;
               opacity: 1;
           }
-          .form-group {
-              margin-bottom: 10px;
+          .email-info {
+              margin-bottom: 15px;
+              background-color: #f5f5f5;
+              padding: 10px;
+              border-radius: 5px;
+              border: 1px solid #ddd;
           }
-          .form-group label {
+          .email-info p {
+              margin: 5px 0;
+          }
+          .email-info strong {
               display: inline-block;
               width: 80px;
-              font-weight: bold;
-          }
-          .form-group input {
-              padding: 5px;
-              width: 300px;
-              border: 1px solid #ccc;
-              border-radius: 3px;
           }
         </style>
 
         <div class="issue-report-container">
-          <div class="form-group">
-            <label for="toEmail">To: </label>
-            <input type="text" id="toEmail" value="support@example.com">
+          <div class="email-info">
+            <p><strong>To:</strong> <span id="displayTo">$support_email$</span></p>
+            <p><strong>CC:</strong> <span id="displayCC">$manager_email$</span></p>
+            <p><strong>Subject:</strong> <span id="displaySubject">Incident Report: $incident_id$</span></p>
           </div>
           
-          <div class="form-group">
-            <label for="ccEmail">CC: </label>
-            <input type="text" id="ccEmail" value="manager@example.com">
-          </div>
-          
-          <div class="form-group">
-            <label for="emailSubject">Subject: </label>
-            <input type="text" id="emailSubject" value="Incident Report">
-          </div>
-          
-          <a class="issue-report-button" id="mailtoLink" target="_blank">Report Issue</a>
+          <a class="issue-report-button" id="mailtoLink" target="_blank">Send Email Report</a>
           
           <div class="tooltip">ⓘ
               <span class="tooltiptext">
@@ -103,38 +115,51 @@
           </div>
           
           <script>
-            // Function to update the mailto link with the form values
-            function updateMailtoLink() {
-              var toEmail = encodeURIComponent(document.getElementById('toEmail').value);
-              var ccEmail = encodeURIComponent(document.getElementById('ccEmail').value);
-              var subject = encodeURIComponent(document.getElementById('emailSubject').value);
-              
-              var bodyContent = "Flow%3A%0A%0AIssue%20subject%3A%0A%0AIssue%20details%3A%0A%0AIncident%20Reference%20%23%3A%0A%0ASeverity%20and%20Priority%3A%0A%0AWhen%20was%20the%20issue%20first%20identified%3A%0A%0AWhat%20is%20the%20impact%20of%20the%20issue%20in%20terms%20of%3A%0A*%20overall%20dollar%20value%0A*%20customers%20numbers%0A*%20intermittent%0A%0AIs%20the%20functionality%20tested%20in%20a%20lower%20environment%3F%3A%0A%0ASupporting%20details%3A";
-              
-              var mailtoUrl = "mailto:" + toEmail + "?cc=" + ccEmail + "&subject=" + subject + "&body=" + bodyContent;
-              
-              var link = document.getElementById('mailtoLink');
-              link.setAttribute('href', mailtoUrl);
-            }
-            
-            // Add event listeners to form inputs
-            document.getElementById('toEmail').addEventListener('input', updateMailtoLink);
-            document.getElementById('ccEmail').addEventListener('input', updateMailtoLink);
-            document.getElementById('emailSubject').addEventListener('input', updateMailtoLink);
-            
-            // Initialize the mailto link on page load
-            document.addEventListener('DOMContentLoaded', function() {
-              updateMailtoLink();
-              
-              // Also add click handler for older browsers/Splunk versions
-              document.getElementById('mailtoLink').addEventListener('click', function(e) {
+            require([
+                'jquery',
+                'splunkjs/mvc',
+                'splunkjs/mvc/tokenutils'
+            ], function($, mvc, TokenUtils) {
+                // Get tokens
+                var defaultTokenModel = mvc.Components.get('default');
+                var submittedTokenModel = mvc.Components.get('submitted');
+                
+                // Function to update the display and mailto link
+                function updateMailtoLink() {
+                    var toEmail = TokenUtils.getToken('support_email', defaultTokenModel) || 'support@example.com';
+                    var ccEmail = TokenUtils.getToken('manager_email', defaultTokenModel) || 'manager@example.com';
+                    var incidentId = TokenUtils.getToken('incident_id', defaultTokenModel) || '';
+                    var subject = 'Incident Report' + (incidentId ? ': ' + incidentId : '');
+                    
+                    // Update display
+                    $('#displayTo').text(toEmail);
+                    $('#displayCC').text(ccEmail);
+                    $('#displaySubject').text(subject);
+                    
+                    // Encode for mailto
+                    var toEmailEnc = encodeURIComponent(toEmail);
+                    var ccEmailEnc = encodeURIComponent(ccEmail);
+                    var subjectEnc = encodeURIComponent(subject);
+                    
+                    var bodyContent = "Flow%3A%0A%0AIssue%20subject%3A%0A%0AIssue%20details%3A%0A%0AIncident%20Reference%20%23%3A%20" + 
+                        encodeURIComponent(incidentId) + 
+                        "%0A%0ASeverity%20and%20Priority%3A%0A%0AWhen%20was%20the%20issue%20first%20identified%3A%0A%0AWhat%20is%20the%20impact%20of%20the%20issue%20in%20terms%20of%3A%0A*%20overall%20dollar%20value%0A*%20customers%20numbers%0A*%20intermittent%0A%0AIs%20the%20functionality%20tested%20in%20a%20lower%20environment%3F%3A%0A%0ASupporting%20details%3A";
+                    
+                    var mailtoUrl = "mailto:" + toEmailEnc + "?cc=" + ccEmailEnc + "&subject=" + subjectEnc + "&body=" + bodyContent;
+                    
+                    $('#mailtoLink').attr('href', mailtoUrl);
+                }
+                
+                // Listen for token changes
+                defaultTokenModel.on("change", updateMailtoLink);
+                submittedTokenModel.on("change", updateMailtoLink);
+                
+                // Initialize the mailto link on page load
                 updateMailtoLink();
-                var mailtoUrl = this.getAttribute('href');
-                window.open(mailtoUrl, '_blank');
-              });
             });
           </script>
         </div>
+        ]]>
       </html>
     </panel>
   </row>
@@ -150,6 +175,9 @@
           <latest>now</latest>
         </search>
         <option name="drilldown">row</option>
+        <drilldown>
+          <set token="incident_id">$row.incident_id$</set>
+        </drilldown>
       </table>
     </panel>
   </row>
