@@ -1,0 +1,20 @@
+{span:style="background-color: #0052CC; color: white; padding: 8px 16px; border-radius: 5px; display: inline-block; cursor: pointer; font-weight: bold; text-decoration: none;"}[Generate Email Template|mailto:blo%2C%20joe%20(mel)%3Cjoe.blo%40test.com%3E%3Bgreat%2C%20scott%3Cscott.great%40test.com%3E?cc=support%40company.com&subject=Incident%20Report&body=Flow%3A%0A%0AIssue%20subject%3A%0A%0AIssue%20details%3A%0A%0AIncident%20Reference%20%23%3A%0A%0ASeverity%20and%20Priority%3A%0A%0AImpact%20assessment%3A%0A%0AEnvironment%20testing%20status%3A%0A%0ASupporting%20details%3A]{span}
+
+
+background-color: #0052CC; 
+color: white; 
+padding: 8px 16px; 
+border-radius: 5px; 
+cursor: pointer; 
+font-weight: bold;
+text-align: center;
+border: none;
+width: auto;
+  
+{table:style=margin:0;padding:0;border:none;width:auto;}
+{tr}
+{td:style=background-color:#0052CC;color:white;padding:8px 16px;border-radius:5px;cursor:pointer;font-weight:bold;text-align:center;border:none;width:auto;}
+[Generate Email Template|mailto:blo%2C%20joe%20(mel)%3Cjoe.blo%40test.com%3E%3Bgreat%2C%20scott%3Cscott.great%40test.com%3E?cc=support%40company.com&subject=Incident%20Report&body=Flow%3A%0A%0AIssue%20subject%3A%0A%0AIssue%20details%3A%0A%0AIncident%20Reference%20%23%3A%0A%0ASeverity%20and%20Priority%3A%0A%0AImpact%20assessment%3A%0A%0AEnvironment%20testing%20status%3A%0A%0ASupporting%20details%3A]
+{td}
+{tr}
+{table}
