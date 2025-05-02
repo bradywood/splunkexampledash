@@ -1,0 +1,243 @@
+<dashboard theme="dark" script="autodiscover.js" stylesheet="dashboard.css">
+  <label>SRE Flow Monitoring Dashboard</label>
+  <description>Visualizes microservice flows and their performance using network diagrams</description>
+  
+  <fieldset submitButton="false" autoRun="true">
+    <input type="time" token="time_range" searchWhenChanged="true">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="flow_name" searchWhenChanged="true">
+      <label>Flow</label>
+      <choice value="*">All Flows</choice>
+      <default>*</default>
+      <fieldForLabel>flow_name</fieldForLabel>
+      <fieldForValue>flow_name</fieldForValue>
+      <search>
+        <query>
+          index=metrics flow_name=* 
+          | stats count by flow_name
+          | sort flow_name
+        </query>
+        <earliest>$time_range.earliest$</earliest>
+        <latest>$time_range.latest$</latest>
+      </search>
+    </input>
+    <input type="dropdown" token="environment" searchWhenChanged="true">
+      <label>Environment</label>
+      <choice value="prod">Production</choice>
+      <choice value="staging">Staging</choice>
+      <choice value="dev">Development</choice>
+      <default>prod</default>
+    </input>
+    <input type="dropdown" token="refresh_interval" searchWhenChanged="true">
+      <label>Refresh Interval</label>
+      <choice value="0">Manual</choice>
+      <choice value="30">30s</choice>
+      <choice value="60">1m</choice>
+      <choice value="300">5m</choice>
+      <default>60</default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <title>Flow Overview: $flow_name$</title>
+      <viz type="network-diagram-viz.network-diagram-viz">
+        <search id="network_diagram_search">
+          <query>
+          <!-- Base query to get all assets in the flow -->
+          index=metrics environment="$environment$" flow_name="$flow_name$"
+          | stats 
+              avg(response_time) as avg_response_time
+              avg(error_rate) as avg_error_rate 
+              avg(availability) as avg_availability
+              by flow_name, asset_name, asset_type, asset_owner
+          
+          <!-- Generate proper node formatting -->
+          | eval nodetext=asset_name."\n".asset_type."\n"."RT: ".round(avg_response_time)."ms"."\nErr: ".round(avg_error_rate, 3)."%"."\nAvail: ".round(avg_availability, 3)."%"
+          
+          <!-- Apply node coloring based on asset_type -->
+          | eval type=case(
+              asset_type=="UI", "desktop", 
+              asset_type=="BFF", "cloud", 
+              asset_type=="Microservice", "server", 
+              asset_type=="External", "globe")
+              
+          <!-- Apply node coloring based on health -->
+          | eval color=case(
+              avg_availability < 99.0 OR avg_error_rate > 1.0, "red",
+              avg_availability >= 99.0 AND avg_availability < 99.9 OR avg_error_rate > 0.1 AND avg_error_rate <= 1.0, "yellow",
+              avg_availability >= 99.9 AND avg_error_rate <= 0.1, "green")
+              
+          <!-- Create connections between services -->
+          | append 
+              [| tstats count from datamodel=flows where environment="$environment$" flow_name="$flow_name$" by source_asset, destination_asset
+              | rename source_asset as from, destination_asset as to
+              
+              <!-- Calculate response time between services -->
+              | join type=left from to 
+                  [| tstats avg(latency) as connection_latency from datamodel=flows where environment="$environment$" flow_name="$flow_name$" by source_asset, destination_asset
+                  | rename source_asset as from, destination_asset as to]
+              
+              <!-- Format connection latency -->
+              | eval linktext=round(connection_latency)." ms"
+              
+              <!-- Calculate connection health -->
+              | join type=left from to 
+                  [| tstats avg(error_rate) as connection_error_rate avg(availability) as connection_availability from datamodel=flows 
+                      where environment="$environment$" flow_name="$flow_name$" by source_asset, destination_asset
+                  | rename source_asset as from, destination_asset as to]
+                  
+              <!-- Apply connection coloring based on health -->
+              | eval linkcolor=case(
+                  connection_availability < 99.0 OR connection_error_rate > 1.0, "red",
+                  connection_availability >= 99.0 AND connection_availability < 99.9 OR connection_error_rate > 0.1 AND connection_error_rate <= 1.0, "yellow",
+                  connection_availability >= 99.9 AND connection_error_rate <= 0.1, "green")
+                  
+              <!-- Set link width based on traffic volume -->
+              | join type=left from to 
+                  [| tstats sum(traffic_volume) as volume from datamodel=flows where environment="$environment$" flow_name="$flow_name$" by source_asset, destination_asset
+                  | rename source_asset as from, destination_asset as to]
+                  
+              | eval linkwidth=case(
+                  volume > 1000000, 5,
+                  volume > 100000, 3,
+                  true(), 1)]
+                  
+          <!-- Ensure we have the necessary fields for the network diagram -->
+          | fields from, to, nodetext, type, color, linktext, linkcolor, linkwidth
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+          <refresh>$refresh_interval$</refresh>
+        </search>
+        <option name="height">600</option>
+        <option name="network-diagram-viz.network-diagram-viz.DisplayPhysics">true</option>
+        <option name="network-diagram-viz.network-diagram-viz.NodeFontSize">12</option>
+        <option name="network-diagram-viz.network-diagram-viz.UseHierarchicalLayout">false</option>
+        <option name="network-diagram-viz.network-diagram-viz.WrapNodeText">true</option>
+        <option name="network-diagram-viz.network-diagram-viz.enableZoom">true</option>
+        <option name="trellis.enabled">false</option>
+        <option name="trellis.scales.shared">true</option>
+        <option name="trellis.size">medium</option>
+        <option name="drilldown">all</option>
+        <drilldown>
+          <set token="selected_asset">$row.from$</set>
+        </drilldown>
+      </viz>
+    </panel>
+  </row>
+
+  <row depends="$selected_asset$">
+    <panel>
+      <title>Service Details: $selected_asset$</title>
+      <table>
+        <search>
+          <query>
+          index=metrics environment="$environment$" flow_name="$flow_name$" asset_name="$selected_asset$"
+          | timechart span=1m 
+              avg(response_time) as "Response Time (ms)",
+              avg(error_rate) as "Error Rate (%)", 
+              avg(availability) as "Availability (%)"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+          <refresh>$refresh_interval$</refresh>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+
+  <row depends="$selected_asset$">
+    <panel>
+      <title>Error Log: $selected_asset$</title>
+      <event>
+        <search>
+          <query>
+          index=logs environment="$environment$" flow_name="$flow_name$" asset_name="$selected_asset$" level=ERROR
+          | sort -_time
+          | head 100
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+          <refresh>$refresh_interval$</refresh>
+        </search>
+        <option name="list.drilldown">none</option>
+        <option name="maxLines">10</option>
+        <option name="raw.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">true</option>
+        <option name="table.drilldown">none</option>
+        <option name="type">list</option>
+        <option name="wrap">true</option>
+      </event>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Flow Performance Overview</title>
+      <chart>
+        <search>
+          <query>
+          index=metrics environment="$environment$" flow_name="$flow_name$"
+          | stats 
+              avg(response_time) as avg_response_time
+              avg(error_rate) as avg_error_rate 
+              avg(availability) as avg_availability
+              by asset_name, asset_type
+          | sort avg_response_time desc
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+          <refresh>$refresh_interval$</refresh>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Health Summary by Team</title>
+      <table>
+        <search>
+          <query>
+          index=metrics environment="$environment$" flow_name="$flow_name$"
+          | stats 
+              count as total_assets
+              avg(response_time) as avg_response_time
+              avg(error_rate) as avg_error_rate 
+              avg(availability) as avg_availability
+              by asset_owner
+          | sort avg_availability desc
+          | eval avg_response_time=round(avg_response_time, 2)." ms"
+          | eval avg_error_rate=round(avg_error_rate, 3)."%"
+          | eval avg_availability=round(avg_availability, 3)."%"
+          | rename asset_owner as "Team", total_assets as "Assets", avg_response_time as "Avg Response Time", 
+              avg_error_rate as "Avg Error Rate", avg_availability as "Avg Availability"
+          </query>
+          <earliest>$time_range.earliest$</earliest>
+          <latest>$time_range.latest$</latest>
+          <refresh>$refresh_interval$</refresh>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>
