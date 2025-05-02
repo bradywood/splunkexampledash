@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dashboard version="1.1" theme="dark" stylesheet="custom.css">
+  <label>Flow Monitoring Dashboard</label>
+  <description>Comprehensive monitoring for microservice flows with drill-down capabilities</description>
+  
+  <!-- Dashboard level filters -->
+  <fieldset submitButton="false" autoRun="true">
+    <input type="time" token="time_token" searchWhenChanged="true">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="flow_token" searchWhenChanged="true">
+      <label>Flow Name</label>
+      <choice value="*">All Flows</choice>
+      <default>*</default>
+      <populatingSearch fieldForValue="flow_name" fieldForLabel="flow_name">
+        | inputlookup flows_metadata.csv
+        | stats count by flow_name
+        | sort flow_name
+      </populatingSearch>
+    </input>
+    <input type="dropdown" token="env_token" searchWhenChanged="true">
+      <label>Environment</label>
+      <choice value="*">All</choice>
+      <choice value="production">Production</choice>
+      <choice value="staging">Staging</choice>
+      <choice value="development">Development</choice>
+      <default>production</default>
+    </input>
+  </fieldset>
+
+  <!-- Header row with Key Metrics -->
+  <row>
+    <panel>
+      <title>Flow Health Overview</title>
+      <chart>
+        <search id="base_flow_health">
+          <query>
+            index=metrics flow_name=$flow_token$ environment=$env_token$
+            | timechart span=5m avg(response_time) as "Avg Response Time (ms)", 
+                            avg(error_rate) as "Error Rate (%)", 
+                            avg(availability) as "Availability (%)" by flow_name
+          </query>
+          <earliest>$time_token.earliest$</earliest>
+          <latest>$time_token.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.overlayFields">"Error Rate (%)"</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Response Time (ms) / Availability (%)</option>
+        <option name="charting.axisTitleY2.text">Error Rate (%)</option>
+        <option name="charting.axisY2.enabled">true</option>
+        <option name="charting.legend.placement">bottom</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Transaction statistics -->
+  <row>
+    <panel span="4">
+      <title>Transaction Volume (Last 24h)</title>
+      <single>
+        <search>
+          <query>
+            index=metrics flow_name=$flow_token$ environment=$env_token$
+            | stats count as transactions
+            | eval transactions=tostring(transactions,"commas")
+          </query>
+          <earliest>$time_token.earliest$</earliest>
+          <latest>$time_token.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="useColors">true</option>
+        <option name="rangeColors">["0x53a051","0x53a051"]</option>
+      </single>
+    </panel>
+    <panel span="4">
+      <title>Average Response Time (ms)</title>
+      <single>
+        <search>
+          <query>
+            index=metrics flow_name=$flow_token$ environment=$env_token$
+            | stats avg(response_time) as avg_response_time
+            | eval avg_response_time=round(avg_response_time, 2)
+            | eval threshold=case(avg_response_time<200, "green", avg_response_time<500, "yellow", true(), "red")
+          </query>
+          <earliest>$time_token.earliest$</earliest>
+          <latest>$time_token.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="colorBy">value</option>
+        <option name="rangeValues">[200,500]</option>
+        <option name="useColors">true</option>
+        <option name="unit">ms</option>
+      </single>
+    </panel>
+    <panel span="4">
+      <title>Error Rate (%)</title>
+      <single>
+        <search>
+          <query>
+            index=metrics flow_name=$flow_token$ environment=$env_token$
+            | stats avg(error_rate) as avg_error_rate
+            | eval avg_error_rate=round(avg_error_rate, 2)
+          </query>
+          <earliest>$time_token.earliest$</earliest>
+          <latest>$time_token.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="colorBy">value</option>
+        <option name="rangeValues">[1,5]</option>
+        <option name="useColors">true</option>
+        <option name="unit">%</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- Flow diagram and asset breakdown -->
+  <row>
+    <panel span="6">
+      <title>Flow Architecture</title>
+      <html>
+        <div id="flow-diagram" style="height: 400px; border: 1px solid #ccc; padding: 10px;">
+          <!-- This will be populated with a dynamic flow diagram -->
+          <script>
+            // This would be replaced with actual JavaScript to render the flow diagram
+            // based on the selected flow from your flow_metadata
+            requirejs(['jquery', 'splunkjs/mvc/tokenutils'], function($, TokenUtils) {
+              var flowTokenValue = TokenUtils.getTokenValue('flow_token');
+              if (flowTokenValue && flowTokenValue !== '*') {
+                // In a real implementation, you would fetch flow configuration and render
+                // a proper diagram using a library like D3.js or mermaid.js
+                $('#flow-diagram').html('<div class="flow-placeholder">Flow diagram for: ' + flowTokenValue + '</div>');
+              } else {
+                $('#flow-diagram').html('<div class="flow-placeholder">Select a specific flow to see its architecture</div>');
+              }
+            });
+          </script>
+        </div>
+      </html>
+    </panel>
+    <panel span="6">
+      <title>Asset Performance Breakdown</title>
+      <table>
+        <search id="asset_performance">
+          <query>
+            index=metrics flow_name=$flow_token$ environment=$env_token$
+            | stats avg(response_time) as avg_response_time, 
+                    avg(error_rate) as avg_error_rate, 
+                    avg(availability) as avg_availability,
+                    count as transactions
+                    by asset_name, asset_type, asset_owner
+            | eval avg_response_time=round(avg_response_time, 2)
+            | eval avg_error_rate=round(avg_error_rate, 2)
+            | eval avg_availability=round(avg_availability, 2)
+            | eval status=case(avg_error_rate>5, "critical", avg_error_rate>2, "warning", true(), "normal")
+            | sort -avg_error_rate
+          </query>
+          <earliest>$time_token.earliest$</earliest>
+          <latest>$time_token.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="count">10</option>
+        <drilldown>
+          <set token="selected_asset">$row.asset_name$</set>
+          <set token="selected_asset_type">$row.asset_type$</set>
+          <set token="selected_asset_owner">$row.asset_owner$</set>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  
+  <!-- Row that appears when an asset is selected -->
+  <row depends="$selected_asset$">
+    <panel>
+      <title>Detailed Analysis for: $selected_asset$</title>
+      <html>
+        <h3>Asset Type: $selected_asset_type$ | Owner: $selected_asset_owner$</h3>
+        <div class="monitoring-links">
+          <a href="https://appd.example.com/controller/#/location=APP_DASHBOARD&application=$selected_asset$" target="_blank" class="btn btn-primary">View in AppDynamics</a>
+          <a href="https://cloudwatch.amazonaws.com/dashboard/$selected_asset$" target="_blank" class="btn btn-primary">View in CloudWatch</a>
+          <a href="search?q=search%20index%3Dmetrics%20asset_name%3D$selected_asset$" class="btn btn-primary">View Detailed Logs</a>
+        </div>
+      </html>
+    </panel>
+  </row>
+  
+  <!-- Detailed metrics for the selected asset -->
+  <row depends="$selected_asset$">
+    <panel span="6">
+      <title>Response Time Trend for $selected_asset$</title>
+      <chart>
+        <search>
+          <query>
+            index=metrics asset_name=$selected_asset$ environment=$env_token$
+            | timechart span=5m avg(response_time) as "Response Time (ms)"
+            | eval upper_threshold=500
+            | eval lower_threshold=200
+          </query>
+          <earliest>$time_token.earliest$</earliest>
+          <latest>$time_token.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.overlayFields">upper_threshold,lower_threshold</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Response Time (ms)</option>
+        <option name="charting.legend.placement">bottom</option>
+      </chart>
+    </panel>
+    <panel span="6">
+      <title>Error Rate Trend for $selected_asset$</title>
+      <chart>
+        <search>
+          <query>
+            index=metrics asset_name=$selected_asset$ environment=$env_token$
+            | timechart span=5m avg(error_rate) as "Error Rate (%)"
+            | eval warning_threshold=2
+            | eval critical_threshold=5
+          </query>
+          <earliest>$time_token.earliest$</earliest>
+          <latest>$time_token.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.overlayFields">warning_threshold,critical_threshold</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Error Rate (%)</option>
+        <option name="charting.legend.placement">bottom</option>
+      </chart>
+    </panel>
+  </row>
+  
+  <!-- Incident and Changes section -->
+  <row depends="$selected_asset$">
+    <panel span="6">
+      <title>Active Incidents for $selected_asset$</title>
+      <table>
+        <search>
+          <query>
+            index=incidents asset_name=$selected_asset$ NOT status=closed
+            | table incident_id, severity, description, start_time, assigned_to, status
+            | sort -severity
+          </query>
+          <earliest>$time_token.earliest$</earliest>
+          <latest>$time_token.latest$</latest>
+        </search>
+        <option name="drilldown">row</option>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <drilldown>
+          <link target="_blank">https://incident-manager.example.com/incident/$row.incident_id$</link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel span="6">
+      <title>Recent/Upcoming Changes for $selected_asset$</title>
+      <table>
+        <search>
+          <query>
+            index=changes asset_name=$selected_asset$ 
+            | eval time_diff=abs(scheduled_time-now())
+            | where time_diff < 86400*7
+            | table change_id, description, status, scheduled_time, change_owner
+            | sort scheduled_time
+          </query>
+          <earliest>-7d@d</earliest>
+          <latest>+7d@d</latest>
+        </search>
+        <option name="drilldown">row</option>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <drilldown>
+          <link target="_blank">https://change-management.example.com/change/$row.change_id$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  
+  <!-- Transaction analysis and trace explorer -->
+  <row depends="$selected_asset$">
+    <panel>
+      <title>Transaction Analysis</title>
+      <chart>
+        <search>
+          <query>
+            index=metrics asset_name=$selected_asset$ environment=$env_token$
+            | timechart span=5m count as "Transaction Count" by transaction_type
+          </query>
+          <earliest>$time_token.earliest$</earliest>
+          <latest>$time_token.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Transaction Count</option>
+        <option name="charting.legend.placement">bottom</option>
+      </chart>
+    </panel>
+  </row>
+  
+  <row>
+    <panel>
+      <title>Flow SLA Compliance</title>
+      <chart>
+        <search>
+          <query>
+            index=metrics flow_name=$flow_token$ environment=$env_token$
+            | eval sla_met=case(response_time<sla_target AND error_rate<error_sla, 1, true(), 0)
+            | timechart span=1d avg(sla_met) as "SLA Compliance (%)" by flow_name
+            | eval target_sla=0.99
+          </query>
+          <earliest>$time_token.earliest$</earliest>
+          <latest>$time_token.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.overlayFields">target_sla</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">SLA Compliance Rate</option>
+        <option name="charting.legend.placement">bottom</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- Historical Trend Analysis -->
+  <row>
+    <panel>
+      <title>90-Day Historical Trend Analysis</title>
+      <chart>
+        <search>
+          <query>
+            index=metrics flow_name=$flow_token$ environment=$env_token$
+            | bin _time span=1d
+            | stats avg(response_time) as avg_response_time, avg(error_rate) as avg_error_rate by _time
+            | sort _time
+            | trendline avg_response_time as response_trend
+            | trendline avg_error_rate as error_trend
+          </query>
+          <earliest>-90d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.overlayFields">response_trend,error_trend</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Response Time (ms)</option>
+        <option name="charting.axisTitleY2.text">Error Rate (%)</option>
+        <option name="charting.axisY2.enabled">true</option>
+        <option name="charting.legend.placement">bottom</option>
+      </chart>
+    </panel>
+  </row>
+</dashboard>
