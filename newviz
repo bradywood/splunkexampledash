@@ -1,30 +1,14 @@
 <dashboard theme="dark" script="autodiscover.js" stylesheet="dashboard.css">
-  <label>SRE Flow Monitoring Dashboard</label>
-  <description>Visualizes microservice flows and their performance using network diagrams</description>
+  <label>SRE Flow Monitoring Dashboard (makeresults)</label>
+  <description>Visualizes microservice flows and their performance using sample data from makeresults</description>
   
   <fieldset submitButton="false" autoRun="true">
-    <input type="time" token="time_range" searchWhenChanged="true">
-      <label>Time Range</label>
-      <default>
-        <earliest>-24h@h</earliest>
-        <latest>now</latest>
-      </default>
-    </input>
     <input type="dropdown" token="flow_name" searchWhenChanged="true">
       <label>Flow</label>
-      <choice value="*">All Flows</choice>
-      <default>*</default>
-      <fieldForLabel>flow_name</fieldForLabel>
-      <fieldForValue>flow_name</fieldForValue>
-      <search>
-        <query>
-          index=metrics flow_name=* 
-          | stats count by flow_name
-          | sort flow_name
-        </query>
-        <earliest>$time_range.earliest$</earliest>
-        <latest>$time_range.latest$</latest>
-      </search>
+      <choice value="checkout-process">Checkout Process</choice>
+      <choice value="search-flow">Search Flow</choice>
+      <choice value="user-auth">User Authentication</choice>
+      <default>checkout-process</default>
     </input>
     <input type="dropdown" token="environment" searchWhenChanged="true">
       <label>Environment</label>
@@ -39,7 +23,7 @@
       <choice value="30">30s</choice>
       <choice value="60">1m</choice>
       <choice value="300">5m</choice>
-      <default>60</default>
+      <default>0</default>
     </input>
   </fieldset>
 
@@ -49,70 +33,39 @@
       <viz type="network-diagram-viz.network-diagram-viz">
         <search id="network_diagram_search">
           <query>
-          <!-- Base query to get all assets in the flow -->
-          index=metrics environment="$environment$" flow_name="$flow_name$"
-          | stats 
-              avg(response_time) as avg_response_time
-              avg(error_rate) as avg_error_rate 
-              avg(availability) as avg_availability
-              by flow_name, asset_name, asset_type, asset_owner
-          
-          <!-- Generate proper node formatting -->
-          | eval nodetext=asset_name."\n".asset_type."\n"."RT: ".round(avg_response_time)."ms"."\nErr: ".round(avg_error_rate, 3)."%"."\nAvail: ".round(avg_availability, 3)."%"
-          
-          <!-- Apply node coloring based on asset_type -->
-          | eval type=case(
-              asset_type=="UI", "desktop", 
-              asset_type=="BFF", "cloud", 
-              asset_type=="Microservice", "server", 
-              asset_type=="External", "globe")
+          | makeresults
+          | eval raw = case(
+              "$flow_name$"=="checkout-process", 
+              "from=\"UI\", to=\"BFF-Checkout\", nodetext=\"UI\\nWeb Interface\\nRT: 45ms\\nErr: 0.02%\\nAvail: 99.99%\", type=\"desktop\", color=\"green\", linkcolor=\"green\", linktext=\"4.39ms\", linkwidth=\"3\" - 
+              from=\"BFF-Checkout\", to=\"Order-Service\", nodetext=\"BFF-Checkout\\nBackend Service\\nRT: 125ms\\nErr: 0.5%\\nAvail: 99.8%\", type=\"cloud\", color=\"yellow\", linkcolor=\"yellow\", linktext=\"14.39ms\", linkwidth=\"4\" - 
+              from=\"Order-Service\", to=\"Payment-Service\", nodetext=\"Order-Service\\nMicroservice\\nRT: 78ms\\nErr: 0.15%\\nAvail: 99.95%\", type=\"server\", color=\"green\", linkcolor=\"green\", linktext=\"7.21ms\", linkwidth=\"2\" - 
+              from=\"Order-Service\", to=\"Inventory-Service\", nodetext=\"Inventory-Service\\nMicroservice\\nRT: 92ms\\nErr: 0.2%\\nAvail: 99.92%\", type=\"server\", color=\"green\", linkcolor=\"green\", linktext=\"9.33ms\", linkwidth=\"2\" - 
+              from=\"Payment-Service\", to=\"Payment-Gateway\", nodetext=\"Payment-Gateway\\nExternal\\nRT: 201ms\\nErr: 1.2%\\nAvail: 98.9%\", type=\"globe\", color=\"red\", linkcolor=\"red\", linktext=\"20.15ms\", linkwidth=\"3\" - 
+              from=\"Inventory-Service\", to=\"Warehouse-DB\", nodetext=\"Warehouse-DB\\nDatabase\\nRT: 31ms\\nErr: 0.05%\\nAvail: 99.98%\", type=\"database\", color=\"green\", linkcolor=\"green\", linktext=\"3.12ms\", linkwidth=\"1\"",
               
-          <!-- Apply node coloring based on health -->
-          | eval color=case(
-              avg_availability < 99.0 OR avg_error_rate > 1.0, "red",
-              avg_availability >= 99.0 AND avg_availability < 99.9 OR avg_error_rate > 0.1 AND avg_error_rate <= 1.0, "yellow",
-              avg_availability >= 99.9 AND avg_error_rate <= 0.1, "green")
+              "$flow_name$"=="search-flow", 
+              "from=\"Search-UI\", to=\"Search-BFF\", nodetext=\"Search-UI\\nWeb Interface\\nRT: 38ms\\nErr: 0.05%\\nAvail: 99.97%\", type=\"desktop\", color=\"green\", linkcolor=\"green\", linktext=\"3.85ms\", linkwidth=\"3\" - 
+              from=\"Search-BFF\", to=\"Query-Service\", nodetext=\"Search-BFF\\nBackend Service\\nRT: 110ms\\nErr: 0.3%\\nAvail: 99.85%\", type=\"cloud\", color=\"green\", linkcolor=\"green\", linktext=\"11.2ms\", linkwidth=\"4\" - 
+              from=\"Query-Service\", to=\"Index-Service\", nodetext=\"Query-Service\\nMicroservice\\nRT: 65ms\\nErr: 0.1%\\nAvail: 99.93%\", type=\"server\", color=\"green\", linkcolor=\"green\", linktext=\"6.54ms\", linkwidth=\"3\" - 
+              from=\"Query-Service\", to=\"Analytics-Service\", nodetext=\"Analytics-Service\\nMicroservice\\nRT: 175ms\\nErr: 0.8%\\nAvail: 99.7%\", type=\"server\", color=\"yellow\", linkcolor=\"yellow\", linktext=\"18.2ms\", linkwidth=\"2\" - 
+              from=\"Index-Service\", to=\"Search-DB\", nodetext=\"Search-DB\\nDatabase\\nRT: 42ms\\nErr: 0.05%\\nAvail: 99.95%\", type=\"database\", color=\"green\", linkcolor=\"green\", linktext=\"4.2ms\", linkwidth=\"3\" - 
+              from=\"Analytics-Service\", to=\"Analytics-DB\", nodetext=\"Analytics-DB\\nDatabase\\nRT: 88ms\\nErr: 0.2%\\nAvail: 99.9%\", type=\"database\", color=\"green\", linkcolor=\"green\", linktext=\"8.7ms\", linkwidth=\"1\"",
               
-          <!-- Create connections between services -->
-          | append 
-              [| tstats count from datamodel=flows where environment="$environment$" flow_name="$flow_name$" by source_asset, destination_asset
-              | rename source_asset as from, destination_asset as to
-              
-              <!-- Calculate response time between services -->
-              | join type=left from to 
-                  [| tstats avg(latency) as connection_latency from datamodel=flows where environment="$environment$" flow_name="$flow_name$" by source_asset, destination_asset
-                  | rename source_asset as from, destination_asset as to]
-              
-              <!-- Format connection latency -->
-              | eval linktext=round(connection_latency)." ms"
-              
-              <!-- Calculate connection health -->
-              | join type=left from to 
-                  [| tstats avg(error_rate) as connection_error_rate avg(availability) as connection_availability from datamodel=flows 
-                      where environment="$environment$" flow_name="$flow_name$" by source_asset, destination_asset
-                  | rename source_asset as from, destination_asset as to]
-                  
-              <!-- Apply connection coloring based on health -->
-              | eval linkcolor=case(
-                  connection_availability < 99.0 OR connection_error_rate > 1.0, "red",
-                  connection_availability >= 99.0 AND connection_availability < 99.9 OR connection_error_rate > 0.1 AND connection_error_rate <= 1.0, "yellow",
-                  connection_availability >= 99.9 AND connection_error_rate <= 0.1, "green")
-                  
-              <!-- Set link width based on traffic volume -->
-              | join type=left from to 
-                  [| tstats sum(traffic_volume) as volume from datamodel=flows where environment="$environment$" flow_name="$flow_name$" by source_asset, destination_asset
-                  | rename source_asset as from, destination_asset as to]
-                  
-              | eval linkwidth=case(
-                  volume > 1000000, 5,
-                  volume > 100000, 3,
-                  true(), 1)]
-                  
-          <!-- Ensure we have the necessary fields for the network diagram -->
-          | fields from, to, nodetext, type, color, linktext, linkcolor, linkwidth
+              "$flow_name$"=="user-auth", 
+              "from=\"Auth-UI\", to=\"Auth-BFF\", nodetext=\"Auth-UI\\nWeb Interface\\nRT: 33ms\\nErr: 0.01%\\nAvail: 99.99%\", type=\"desktop\", color=\"green\", linkcolor=\"green\", linktext=\"3.3ms\", linkwidth=\"2\" - 
+              from=\"Auth-BFF\", to=\"Identity-Service\", nodetext=\"Auth-BFF\\nBackend Service\\nRT: 95ms\\nErr: 0.3%\\nAvail: 99.88%\", type=\"cloud\", color=\"green\", linkcolor=\"green\", linktext=\"9.6ms\", linkwidth=\"3\" - 
+              from=\"Identity-Service\", to=\"User-DB\", nodetext=\"Identity-Service\\nMicroservice\\nRT: 58ms\\nErr: 0.1%\\nAvail: 99.95%\", type=\"server\", color=\"green\", linkcolor=\"green\", linktext=\"5.8ms\", linkwidth=\"2\" - 
+              from=\"Identity-Service\", to=\"Auth-Provider\", nodetext=\"Auth-Provider\\nExternal\\nRT: 185ms\\nErr: 1.5%\\nAvail: 98.7%\", type=\"globe\", color=\"red\", linkcolor=\"red\", linktext=\"18.5ms\", linkwidth=\"2\" - 
+              from=\"Identity-Service\", to=\"Permission-Service\", nodetext=\"Permission-Service\\nMicroservice\\nRT: 72ms\\nErr: 0.2%\\nAvail: 99.9%\", type=\"server\", color=\"green\", linkcolor=\"green\", linktext=\"7.1ms\", linkwidth=\"1\" - 
+              from=\"Permission-Service\", to=\"Permission-DB\", nodetext=\"Permission-DB\\nDatabase\\nRT: 28ms\\nErr: 0.05%\\nAvail: 99.97%\", type=\"database\", color=\"green\", linkcolor=\"green\", linktext=\"2.8ms\", linkwidth=\"1\""
+            )
+          | makemv delim="-" raw 
+          | mvexpand raw 
+          | rename raw as _raw 
+          | extract field=_raw "from=\"(?<from>[^\"]+)\", to=\"(?<to>[^\"]+)\", nodetext=\"(?<nodetext>[^\"]+)\", type=\"(?<type>[^\"]+)\", color=\"(?<color>[^\"]+)\", linkcolor=\"(?<linkcolor>[^\"]+)\", linktext=\"(?<linktext>[^\"]+)\", linkwidth=\"(?<linkwidth>[^\"]+)\""
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
           <refresh>$refresh_interval$</refresh>
         </search>
         <option name="height">600</option>
@@ -138,14 +91,23 @@
       <table>
         <search>
           <query>
-          index=metrics environment="$environment$" flow_name="$flow_name$" asset_name="$selected_asset$"
-          | timechart span=1m 
-              avg(response_time) as "Response Time (ms)",
-              avg(error_rate) as "Error Rate (%)", 
-              avg(availability) as "Availability (%)"
+          | makeresults count=10
+          | streamstats count 
+          | eval _time=now()-((10-count)*60) 
+          | eval min=if("$selected_asset$"=="Payment-Gateway" OR "$selected_asset$"=="Auth-Provider", 190, 30)
+          | eval max=if("$selected_asset$"=="Payment-Gateway" OR "$selected_asset$"=="Auth-Provider", 240, 120)
+          | eval min_err=if("$selected_asset$"=="Payment-Gateway" OR "$selected_asset$"=="Auth-Provider", 0.8, 0.01)
+          | eval max_err=if("$selected_asset$"=="Payment-Gateway" OR "$selected_asset$"=="Auth-Provider", 1.5, 0.5)
+          | eval min_avail=if("$selected_asset$"=="Payment-Gateway" OR "$selected_asset$"=="Auth-Provider", 98.5, 99.8)
+          | eval max_avail=if("$selected_asset$"=="Payment-Gateway" OR "$selected_asset$"=="Auth-Provider", 99.2, 100)
+          | eval "Response Time (ms)"=round(random()*(max-min)+min, 2)
+          | eval "Error Rate (%)"=round(random()*(max_err-min_err)+min_err, 3)
+          | eval "Availability (%)"=round(random()*(max_avail-min_avail)+min_avail, 2)
+          | fields _time, "Response Time (ms)", "Error Rate (%)", "Availability (%)"
+          | sort _time
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
+          <earliest>-10m@m</earliest>
+          <latest>now</latest>
           <refresh>$refresh_interval$</refresh>
         </search>
         <option name="drilldown">none</option>
@@ -159,12 +121,24 @@
       <event>
         <search>
           <query>
-          index=logs environment="$environment$" flow_name="$flow_name$" asset_name="$selected_asset$" level=ERROR
-          | sort -_time
-          | head 100
+          | makeresults count=5
+          | streamstats count 
+          | eval _time=now()-(count*120)
+          | eval level="ERROR"
+          | eval service="$selected_asset$"
+          | eval environment="$environment$"
+          | eval flow_name="$flow_name$"
+          | eval msg=case(
+              count=1, "Connection timeout with downstream service",
+              count=2, "Invalid response format received from dependency",
+              count=3, "Rate limit exceeded on external API call",
+              count=4, "Database query execution failed with timeout",
+              count=5, "Memory allocation failure during peak load"
+            )
+          | eval _raw=service." [".level."] ".msg." in ".environment." environment for flow ".flow_name." at ".strftime(_time, "%Y-%m-%d %H:%M:%S")
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
+          <earliest>-1h@h</earliest>
+          <latest>now</latest>
           <refresh>$refresh_interval$</refresh>
         </search>
         <option name="list.drilldown">none</option>
@@ -185,22 +159,54 @@
       <chart>
         <search>
           <query>
-          index=metrics environment="$environment$" flow_name="$flow_name$"
-          | stats 
-              avg(response_time) as avg_response_time
-              avg(error_rate) as avg_error_rate 
-              avg(availability) as avg_availability
-              by asset_name, asset_type
-          | sort avg_response_time desc
+          | makeresults
+          | eval raw = case(
+              "$flow_name$"=="checkout-process", 
+              "asset_name=\"UI\", asset_type=\"UI\", avg_response_time=45, avg_error_rate=0.02, avg_availability=99.99 - 
+              asset_name=\"BFF-Checkout\", asset_type=\"BFF\", avg_response_time=125, avg_error_rate=0.5, avg_availability=99.8 - 
+              asset_name=\"Order-Service\", asset_type=\"Microservice\", avg_response_time=78, avg_error_rate=0.15, avg_availability=99.95 - 
+              asset_name=\"Inventory-Service\", asset_type=\"Microservice\", avg_response_time=92, avg_error_rate=0.2, avg_availability=99.92 - 
+              asset_name=\"Payment-Service\", asset_type=\"Microservice\", avg_response_time=87, avg_error_rate=0.18, avg_availability=99.93 - 
+              asset_name=\"Payment-Gateway\", asset_type=\"External\", avg_response_time=201, avg_error_rate=1.2, avg_availability=98.9 - 
+              asset_name=\"Warehouse-DB\", asset_type=\"Database\", avg_response_time=31, avg_error_rate=0.05, avg_availability=99.98",
+              
+              "$flow_name$"=="search-flow", 
+              "asset_name=\"Search-UI\", asset_type=\"UI\", avg_response_time=38, avg_error_rate=0.05, avg_availability=99.97 - 
+              asset_name=\"Search-BFF\", asset_type=\"BFF\", avg_response_time=110, avg_error_rate=0.3, avg_availability=99.85 - 
+              asset_name=\"Query-Service\", asset_type=\"Microservice\", avg_response_time=65, avg_error_rate=0.1, avg_availability=99.93 - 
+              asset_name=\"Index-Service\", asset_type=\"Microservice\", avg_response_time=58, avg_error_rate=0.08, avg_availability=99.94 - 
+              asset_name=\"Analytics-Service\", asset_type=\"Microservice\", avg_response_time=175, avg_error_rate=0.8, avg_availability=99.7 - 
+              asset_name=\"Search-DB\", asset_type=\"Database\", avg_response_time=42, avg_error_rate=0.05, avg_availability=99.95 - 
+              asset_name=\"Analytics-DB\", asset_type=\"Database\", avg_response_time=88, avg_error_rate=0.2, avg_availability=99.9",
+              
+              "$flow_name$"=="user-auth", 
+              "asset_name=\"Auth-UI\", asset_type=\"UI\", avg_response_time=33, avg_error_rate=0.01, avg_availability=99.99 - 
+              asset_name=\"Auth-BFF\", asset_type=\"BFF\", avg_response_time=95, avg_error_rate=0.3, avg_availability=99.88 - 
+              asset_name=\"Identity-Service\", asset_type=\"Microservice\", avg_response_time=58, avg_error_rate=0.1, avg_availability=99.95 - 
+              asset_name=\"Auth-Provider\", asset_type=\"External\", avg_response_time=185, avg_error_rate=1.5, avg_availability=98.7 - 
+              asset_name=\"Permission-Service\", asset_type=\"Microservice\", avg_response_time=72, avg_error_rate=0.2, avg_availability=99.9 - 
+              asset_name=\"User-DB\", asset_type=\"Database\", avg_response_time=43, avg_error_rate=0.05, avg_availability=99.97 - 
+              asset_name=\"Permission-DB\", asset_type=\"Database\", avg_response_time=28, avg_error_rate=0.05, avg_availability=99.97"
+            )
+          | makemv delim="-" raw 
+          | mvexpand raw 
+          | rename raw as _raw 
+          | extract field=_raw "asset_name=\"(?<asset_name>[^\"]+)\", asset_type=\"(?<asset_type>[^\"]+)\", avg_response_time=(?<avg_response_time>[^,]+), avg_error_rate=(?<avg_error_rate>[^,]+), avg_availability=(?<avg_availability>[^,^\\s]+)"
+          | sort - avg_response_time
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
           <refresh>$refresh_interval$</refresh>
         </search>
         <option name="charting.chart">bar</option>
         <option name="charting.drilldown">none</option>
         <option name="charting.legend.placement">bottom</option>
         <option name="refresh.display">progressbar</option>
+        <option name="charting.fieldColors">{"avg_response_time": 0x5dc4ea}</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisTitleX.text">Service</option>
+        <option name="charting.axisTitleY.text">Response Time (ms)</option>
       </chart>
     </panel>
   </row>
@@ -211,22 +217,42 @@
       <table>
         <search>
           <query>
-          index=metrics environment="$environment$" flow_name="$flow_name$"
-          | stats 
-              count as total_assets
-              avg(response_time) as avg_response_time
-              avg(error_rate) as avg_error_rate 
-              avg(availability) as avg_availability
-              by asset_owner
-          | sort avg_availability desc
-          | eval avg_response_time=round(avg_response_time, 2)." ms"
-          | eval avg_error_rate=round(avg_error_rate, 3)."%"
-          | eval avg_availability=round(avg_availability, 3)."%"
-          | rename asset_owner as "Team", total_assets as "Assets", avg_response_time as "Avg Response Time", 
-              avg_error_rate as "Avg Error Rate", avg_availability as "Avg Availability"
+          | makeresults
+          | eval raw = case(
+              "$flow_name$"=="checkout-process", 
+              "asset_owner=\"Frontend Team\", total_assets=1, avg_response_time=45, avg_error_rate=0.02, avg_availability=99.99 - 
+              asset_owner=\"BFF Team\", total_assets=1, avg_response_time=125, avg_error_rate=0.5, avg_availability=99.8 - 
+              asset_owner=\"Order Team\", total_assets=2, avg_response_time=85, avg_error_rate=0.175, avg_availability=99.935 - 
+              asset_owner=\"Payment Team\", total_assets=1, avg_response_time=201, avg_error_rate=1.2, avg_availability=98.9 - 
+              asset_owner=\"Database Team\", total_assets=1, avg_response_time=31, avg_error_rate=0.05, avg_availability=99.98",
+              
+              "$flow_name$"=="search-flow", 
+              "asset_owner=\"Frontend Team\", total_assets=1, avg_response_time=38, avg_error_rate=0.05, avg_availability=99.97 - 
+              asset_owner=\"BFF Team\", total_assets=1, avg_response_time=110, avg_error_rate=0.3, avg_availability=99.85 - 
+              asset_owner=\"Search Team\", total_assets=2, avg_response_time=61.5, avg_error_rate=0.09, avg_availability=99.935 - 
+              asset_owner=\"Analytics Team\", total_assets=1, avg_response_time=175, avg_error_rate=0.8, avg_availability=99.7 - 
+              asset_owner=\"Database Team\", total_assets=2, avg_response_time=65, avg_error_rate=0.125, avg_availability=99.925",
+              
+              "$flow_name$"=="user-auth", 
+              "asset_owner=\"Frontend Team\", total_assets=1, avg_response_time=33, avg_error_rate=0.01, avg_availability=99.99 - 
+              asset_owner=\"BFF Team\", total_assets=1, avg_response_time=95, avg_error_rate=0.3, avg_availability=99.88 - 
+              asset_owner=\"Identity Team\", total_assets=1, avg_response_time=58, avg_error_rate=0.1, avg_availability=99.95 - 
+              asset_owner=\"External Auth\", total_assets=1, avg_response_time=185, avg_error_rate=1.5, avg_availability=98.7 - 
+              asset_owner=\"Permissions Team\", total_assets=1, avg_response_time=72, avg_error_rate=0.2, avg_availability=99.9 - 
+              asset_owner=\"Database Team\", total_assets=2, avg_response_time=35.5, avg_error_rate=0.05, avg_availability=99.97"
+            )
+          | makemv delim="-" raw 
+          | mvexpand raw 
+          | rename raw as _raw 
+          | extract field=_raw "asset_owner=\"(?<Team>[^\"]+)\", total_assets=(?<Assets>[^,]+), avg_response_time=(?<avg_response_time>[^,]+), avg_error_rate=(?<avg_error_rate>[^,]+), avg_availability=(?<avg_availability>[^,^\\s]+)"
+          | eval "Avg Response Time"=round(avg_response_time, 2)." ms"
+          | eval "Avg Error Rate"=round(avg_error_rate, 3)."%"
+          | eval "Avg Availability"=round(avg_availability, 3)."%"
+          | sort - "Avg Availability"
+          | fields Team, Assets, "Avg Response Time", "Avg Error Rate", "Avg Availability"
           </query>
-          <earliest>$time_range.earliest$</earliest>
-          <latest>$time_range.latest$</latest>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
           <refresh>$refresh_interval$</refresh>
         </search>
         <option name="count">10</option>
