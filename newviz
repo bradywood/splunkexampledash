@@ -1,14 +1,14 @@
 <dashboard theme="dark" script="autodiscover.js" stylesheet="dashboard.css">
-  <label>SRE Flow Monitoring Dashboard (makeresults)</label>
-  <description>Visualizes microservice flows and their performance using sample data from makeresults</description>
+  <label>SRE Flow Monitoring Dashboard</label>
+  <description>Visualizes microservice flows and their performance using network diagrams</description>
   
   <fieldset submitButton="false" autoRun="true">
     <input type="dropdown" token="flow_name" searchWhenChanged="true">
       <label>Flow</label>
-      <choice value="checkout-process">Checkout Process</choice>
-      <choice value="search-flow">Search Flow</choice>
-      <choice value="user-auth">User Authentication</choice>
-      <default>checkout-process</default>
+      <choice value="checkout">Checkout Process</choice>
+      <choice value="search">Search Flow</choice>
+      <choice value="auth">User Authentication</choice>
+      <default>checkout</default>
     </input>
     <input type="dropdown" token="environment" searchWhenChanged="true">
       <label>Environment</label>
@@ -27,46 +27,66 @@
     </input>
   </fieldset>
 
+  <!-- Table Source Panel (Hidden) -->
   <row>
-    <panel>
-      <title>Flow Overview: $flow_name$</title>
-      <viz type="network-diagram-viz.network-diagram-viz">
-        <search id="network_diagram_search">
+    <panel depends="">
+      <title>Flow Data Source (Hidden)</title>
+      <table>
+        <search id="flow_data">
           <query>
           | makeresults
           | eval raw = case(
-              "$flow_name$"=="checkout-process", 
-              "from=\"UI\", to=\"BFF-Checkout\", nodetext=\"UI\\nWeb Interface\\nRT: 45ms\\nErr: 0.02%\\nAvail: 99.99%\", type=\"desktop\", color=\"green\", linkcolor=\"green\", linktext=\"4.39ms\", linkwidth=\"3\" - 
-              from=\"BFF-Checkout\", to=\"Order-Service\", nodetext=\"BFF-Checkout\\nBackend Service\\nRT: 125ms\\nErr: 0.5%\\nAvail: 99.8%\", type=\"cloud\", color=\"yellow\", linkcolor=\"yellow\", linktext=\"14.39ms\", linkwidth=\"4\" - 
-              from=\"Order-Service\", to=\"Payment-Service\", nodetext=\"Order-Service\\nMicroservice\\nRT: 78ms\\nErr: 0.15%\\nAvail: 99.95%\", type=\"server\", color=\"green\", linkcolor=\"green\", linktext=\"7.21ms\", linkwidth=\"2\" - 
-              from=\"Order-Service\", to=\"Inventory-Service\", nodetext=\"Inventory-Service\\nMicroservice\\nRT: 92ms\\nErr: 0.2%\\nAvail: 99.92%\", type=\"server\", color=\"green\", linkcolor=\"green\", linktext=\"9.33ms\", linkwidth=\"2\" - 
-              from=\"Payment-Service\", to=\"Payment-Gateway\", nodetext=\"Payment-Gateway\\nExternal\\nRT: 201ms\\nErr: 1.2%\\nAvail: 98.9%\", type=\"globe\", color=\"red\", linkcolor=\"red\", linktext=\"20.15ms\", linkwidth=\"3\" - 
-              from=\"Inventory-Service\", to=\"Warehouse-DB\", nodetext=\"Warehouse-DB\\nDatabase\\nRT: 31ms\\nErr: 0.05%\\nAvail: 99.98%\", type=\"database\", color=\"green\", linkcolor=\"green\", linktext=\"3.12ms\", linkwidth=\"1\"",
+              "$flow_name$"=="checkout" AND "$environment$"=="prod", 
+              "from=\"UI\", to=\"BFF-Checkout\", nodetext=\"UI\nWeb Interface\nRT: 45ms\nErr: 0.02%\nAvail: 99.99%\", type=\"desktop\", color=\"green\", linkcolor=green, linktext=\"4.39ms\", linkwidth=\"3\" ~ from=\"BFF-Checkout\", to=\"Order-Service\", nodetext=\"BFF-Checkout\nBackend Service\nRT: 125ms\nErr: 0.5%\nAvail: 99.8%\", type=\"cloud\", color=\"yellow\", linkcolor=yellow, linktext=\"14.39ms\", linkwidth=\"4\" ~ from=\"Order-Service\", to=\"Payment-Service\", nodetext=\"Order-Service\nMicroservice\nRT: 78ms\nErr: 0.15%\nAvail: 99.95%\", type=\"server\", color=\"green\", linkcolor=green, linktext=\"7.21ms\", linkwidth=\"2\" ~ from=\"Order-Service\", to=\"Inventory-Service\", nodetext=\"Inventory-Service\nMicroservice\nRT: 92ms\nErr: 0.2%\nAvail: 99.92%\", type=\"server\", color=\"green\", linkcolor=green, linktext=\"9.33ms\", linkwidth=\"2\" ~ from=\"Payment-Service\", to=\"Payment-Gateway\", nodetext=\"Payment-Gateway\nExternal\nRT: 201ms\nErr: 1.2%\nAvail: 98.9%\", type=\"globe\", color=\"red\", linkcolor=red, linktext=\"20.15ms\", linkwidth=\"3\" ~ from=\"Inventory-Service\", to=\"Warehouse-DB\", nodetext=\"Warehouse-DB\nDatabase\nRT: 31ms\nErr: 0.05%\nAvail: 99.98%\", type=\"database\", color=\"green\", linkcolor=green, linktext=\"3.12ms\", linkwidth=\"1\"",
               
-              "$flow_name$"=="search-flow", 
-              "from=\"Search-UI\", to=\"Search-BFF\", nodetext=\"Search-UI\\nWeb Interface\\nRT: 38ms\\nErr: 0.05%\\nAvail: 99.97%\", type=\"desktop\", color=\"green\", linkcolor=\"green\", linktext=\"3.85ms\", linkwidth=\"3\" - 
-              from=\"Search-BFF\", to=\"Query-Service\", nodetext=\"Search-BFF\\nBackend Service\\nRT: 110ms\\nErr: 0.3%\\nAvail: 99.85%\", type=\"cloud\", color=\"green\", linkcolor=\"green\", linktext=\"11.2ms\", linkwidth=\"4\" - 
-              from=\"Query-Service\", to=\"Index-Service\", nodetext=\"Query-Service\\nMicroservice\\nRT: 65ms\\nErr: 0.1%\\nAvail: 99.93%\", type=\"server\", color=\"green\", linkcolor=\"green\", linktext=\"6.54ms\", linkwidth=\"3\" - 
-              from=\"Query-Service\", to=\"Analytics-Service\", nodetext=\"Analytics-Service\\nMicroservice\\nRT: 175ms\\nErr: 0.8%\\nAvail: 99.7%\", type=\"server\", color=\"yellow\", linkcolor=\"yellow\", linktext=\"18.2ms\", linkwidth=\"2\" - 
-              from=\"Index-Service\", to=\"Search-DB\", nodetext=\"Search-DB\\nDatabase\\nRT: 42ms\\nErr: 0.05%\\nAvail: 99.95%\", type=\"database\", color=\"green\", linkcolor=\"green\", linktext=\"4.2ms\", linkwidth=\"3\" - 
-              from=\"Analytics-Service\", to=\"Analytics-DB\", nodetext=\"Analytics-DB\\nDatabase\\nRT: 88ms\\nErr: 0.2%\\nAvail: 99.9%\", type=\"database\", color=\"green\", linkcolor=\"green\", linktext=\"8.7ms\", linkwidth=\"1\"",
+              "$flow_name$"=="checkout" AND "$environment$"=="staging", 
+              "from=\"UI\", to=\"BFF-Checkout\", nodetext=\"UI\nWeb Interface\nRT: 52ms\nErr: 0.1%\nAvail: 99.85%\", type=\"desktop\", color=\"green\", linkcolor=green, linktext=\"5.25ms\", linkwidth=\"3\" ~ from=\"BFF-Checkout\", to=\"Order-Service\", nodetext=\"BFF-Checkout\nBackend Service\nRT: 138ms\nErr: 0.7%\nAvail: 99.6%\", type=\"cloud\", color=\"yellow\", linkcolor=yellow, linktext=\"13.82ms\", linkwidth=\"4\" ~ from=\"Order-Service\", to=\"Payment-Service\", nodetext=\"Order-Service\nMicroservice\nRT: 85ms\nErr: 0.25%\nAvail: 99.8%\", type=\"server\", color=\"green\", linkcolor=green, linktext=\"8.51ms\", linkwidth=\"2\" ~ from=\"Order-Service\", to=\"Inventory-Service\", nodetext=\"Inventory-Service\nMicroservice\nRT: 105ms\nErr: 0.4%\nAvail: 99.7%\", type=\"server\", color=\"green\", linkcolor=green, linktext=\"10.48ms\", linkwidth=\"2\" ~ from=\"Payment-Service\", to=\"Payment-Gateway\", nodetext=\"Payment-Gateway\nExternal\nRT: 245ms\nErr: 1.8%\nAvail: 98.2%\", type=\"globe\", color=\"red\", linkcolor=red, linktext=\"24.52ms\", linkwidth=\"3\" ~ from=\"Inventory-Service\", to=\"Warehouse-DB\", nodetext=\"Warehouse-DB\nDatabase\nRT: 42ms\nErr: 0.15%\nAvail: 99.85%\", type=\"database\", color=\"green\", linkcolor=green, linktext=\"4.18ms\", linkwidth=\"1\"",
               
-              "$flow_name$"=="user-auth", 
-              "from=\"Auth-UI\", to=\"Auth-BFF\", nodetext=\"Auth-UI\\nWeb Interface\\nRT: 33ms\\nErr: 0.01%\\nAvail: 99.99%\", type=\"desktop\", color=\"green\", linkcolor=\"green\", linktext=\"3.3ms\", linkwidth=\"2\" - 
-              from=\"Auth-BFF\", to=\"Identity-Service\", nodetext=\"Auth-BFF\\nBackend Service\\nRT: 95ms\\nErr: 0.3%\\nAvail: 99.88%\", type=\"cloud\", color=\"green\", linkcolor=\"green\", linktext=\"9.6ms\", linkwidth=\"3\" - 
-              from=\"Identity-Service\", to=\"User-DB\", nodetext=\"Identity-Service\\nMicroservice\\nRT: 58ms\\nErr: 0.1%\\nAvail: 99.95%\", type=\"server\", color=\"green\", linkcolor=\"green\", linktext=\"5.8ms\", linkwidth=\"2\" - 
-              from=\"Identity-Service\", to=\"Auth-Provider\", nodetext=\"Auth-Provider\\nExternal\\nRT: 185ms\\nErr: 1.5%\\nAvail: 98.7%\", type=\"globe\", color=\"red\", linkcolor=\"red\", linktext=\"18.5ms\", linkwidth=\"2\" - 
-              from=\"Identity-Service\", to=\"Permission-Service\", nodetext=\"Permission-Service\\nMicroservice\\nRT: 72ms\\nErr: 0.2%\\nAvail: 99.9%\", type=\"server\", color=\"green\", linkcolor=\"green\", linktext=\"7.1ms\", linkwidth=\"1\" - 
-              from=\"Permission-Service\", to=\"Permission-DB\", nodetext=\"Permission-DB\\nDatabase\\nRT: 28ms\\nErr: 0.05%\\nAvail: 99.97%\", type=\"database\", color=\"green\", linkcolor=\"green\", linktext=\"2.8ms\", linkwidth=\"1\""
+              "$flow_name$"=="checkout" AND "$environment$"=="dev", 
+              "from=\"UI\", to=\"BFF-Checkout\", nodetext=\"UI\nWeb Interface\nRT: 68ms\nErr: 0.5%\nAvail: 99.5%\", type=\"desktop\", color=\"yellow\", linkcolor=yellow, linktext=\"6.85ms\", linkwidth=\"3\" ~ from=\"BFF-Checkout\", to=\"Order-Service\", nodetext=\"BFF-Checkout\nBackend Service\nRT: 167ms\nErr: 1.2%\nAvail: 99.2%\", type=\"cloud\", color=\"yellow\", linkcolor=yellow, linktext=\"16.73ms\", linkwidth=\"4\" ~ from=\"Order-Service\", to=\"Payment-Service\", nodetext=\"Order-Service\nMicroservice\nRT: 92ms\nErr: 0.6%\nAvail: 99.5%\", type=\"server\", color=\"yellow\", linkcolor=yellow, linktext=\"9.23ms\", linkwidth=\"2\" ~ from=\"Order-Service\", to=\"Inventory-Service\", nodetext=\"Inventory-Service\nMicroservice\nRT: 128ms\nErr: 0.8%\nAvail: 99.4%\", type=\"server\", color=\"yellow\", linkcolor=yellow, linktext=\"12.76ms\", linkwidth=\"2\" ~ from=\"Payment-Service\", to=\"Payment-Gateway\", nodetext=\"Payment-Gateway\nExternal\nRT: 289ms\nErr: 2.5%\nAvail: 97.5%\", type=\"globe\", color=\"red\", linkcolor=red, linktext=\"28.91ms\", linkwidth=\"3\" ~ from=\"Inventory-Service\", to=\"Warehouse-DB\", nodetext=\"Warehouse-DB\nDatabase\nRT: 56ms\nErr: 0.4%\nAvail: 99.6%\", type=\"database\", color=\"yellow\", linkcolor=yellow, linktext=\"5.62ms\", linkwidth=\"1\"",
+              
+              "$flow_name$"=="search" AND "$environment$"=="prod", 
+              "from=\"Search-UI\", to=\"Search-BFF\", nodetext=\"Search-UI\nWeb Interface\nRT: 38ms\nErr: 0.05%\nAvail: 99.97%\", type=\"desktop\", color=\"green\", linkcolor=green, linktext=\"3.85ms\", linkwidth=\"3\" ~ from=\"Search-BFF\", to=\"Query-Service\", nodetext=\"Search-BFF\nBackend Service\nRT: 110ms\nErr: 0.3%\nAvail: 99.85%\", type=\"cloud\", color=\"green\", linkcolor=green, linktext=\"11.2ms\", linkwidth=\"4\" ~ from=\"Query-Service\", to=\"Index-Service\", nodetext=\"Query-Service\nMicroservice\nRT: 65ms\nErr: 0.1%\nAvail: 99.93%\", type=\"server\", color=\"green\", linkcolor=green, linktext=\"6.54ms\", linkwidth=\"3\" ~ from=\"Query-Service\", to=\"Analytics-Service\", nodetext=\"Analytics-Service\nMicroservice\nRT: 175ms\nErr: 0.8%\nAvail: 99.7%\", type=\"server\", color=\"yellow\", linkcolor=yellow, linktext=\"18.2ms\", linkwidth=\"2\" ~ from=\"Index-Service\", to=\"Search-DB\", nodetext=\"Search-DB\nDatabase\nRT: 42ms\nErr: 0.05%\nAvail: 99.95%\", type=\"database\", color=\"green\", linkcolor=green, linktext=\"4.2ms\", linkwidth=\"3\" ~ from=\"Analytics-Service\", to=\"Analytics-DB\", nodetext=\"Analytics-DB\nDatabase\nRT: 88ms\nErr: 0.2%\nAvail: 99.9%\", type=\"database\", color=\"green\", linkcolor=green, linktext=\"8.7ms\", linkwidth=\"1\"",
+              
+              "$flow_name$"=="search" AND "$environment$"=="staging", 
+              "from=\"Search-UI\", to=\"Search-BFF\", nodetext=\"Search-UI\nWeb Interface\nRT: 45ms\nErr: 0.1%\nAvail: 99.85%\", type=\"desktop\", color=\"green\", linkcolor=green, linktext=\"4.5ms\", linkwidth=\"3\" ~ from=\"Search-BFF\", to=\"Query-Service\", nodetext=\"Search-BFF\nBackend Service\nRT: 120ms\nErr: 0.5%\nAvail: 99.75%\", type=\"cloud\", color=\"green\", linkcolor=green, linktext=\"12.8ms\", linkwidth=\"4\" ~ from=\"Query-Service\", to=\"Index-Service\", nodetext=\"Query-Service\nMicroservice\nRT: 72ms\nErr: 0.2%\nAvail: 99.85%\", type=\"server\", color=\"green\", linkcolor=green, linktext=\"7.8ms\", linkwidth=\"3\" ~ from=\"Query-Service\", to=\"Analytics-Service\", nodetext=\"Analytics-Service\nMicroservice\nRT: 192ms\nErr: 1.2%\nAvail: 99.4%\", type=\"server\", color=\"yellow\", linkcolor=yellow, linktext=\"21.5ms\", linkwidth=\"2\" ~ from=\"Index-Service\", to=\"Search-DB\", nodetext=\"Search-DB\nDatabase\nRT: 48ms\nErr: 0.15%\nAvail: 99.85%\", type=\"database\", color=\"green\", linkcolor=green, linktext=\"5.1ms\", linkwidth=\"3\" ~ from=\"Analytics-Service\", to=\"Analytics-DB\", nodetext=\"Analytics-DB\nDatabase\nRT: 95ms\nErr: 0.35%\nAvail: 99.8%\", type=\"database\", color=\"green\", linkcolor=green, linktext=\"9.5ms\", linkwidth=\"1\"",
+              
+              "$flow_name$"=="search" AND "$environment$"=="dev", 
+              "from=\"Search-UI\", to=\"Search-BFF\", nodetext=\"Search-UI\nWeb Interface\nRT: 58ms\nErr: 0.25%\nAvail: 99.6%\", type=\"desktop\", color=\"green\", linkcolor=green, linktext=\"5.8ms\", linkwidth=\"3\" ~ from=\"Search-BFF\", to=\"Query-Service\", nodetext=\"Search-BFF\nBackend Service\nRT: 148ms\nErr: 0.85%\nAvail: 99.5%\", type=\"cloud\", color=\"yellow\", linkcolor=yellow, linktext=\"14.8ms\", linkwidth=\"4\" ~ from=\"Query-Service\", to=\"Index-Service\", nodetext=\"Query-Service\nMicroservice\nRT: 89ms\nErr: 0.45%\nAvail: 99.7%\", type=\"server\", color=\"green\", linkcolor=green, linktext=\"8.9ms\", linkwidth=\"3\" ~ from=\"Query-Service\", to=\"Analytics-Service\", nodetext=\"Analytics-Service\nMicroservice\nRT: 238ms\nErr: 2.1%\nAvail: 98.9%\", type=\"server\", color=\"red\", linkcolor=red, linktext=\"23.8ms\", linkwidth=\"2\" ~ from=\"Index-Service\", to=\"Search-DB\", nodetext=\"Search-DB\nDatabase\nRT: 65ms\nErr: 0.35%\nAvail: 99.7%\", type=\"database\", color=\"green\", linkcolor=green, linktext=\"6.5ms\", linkwidth=\"3\" ~ from=\"Analytics-Service\", to=\"Analytics-DB\", nodetext=\"Analytics-DB\nDatabase\nRT: 125ms\nErr: 0.65%\nAvail: 99.5%\", type=\"database\", color=\"yellow\", linkcolor=yellow, linktext=\"12.5ms\", linkwidth=\"1\"",
+              
+              "$flow_name$"=="auth" AND "$environment$"=="prod", 
+              "from=\"Auth-UI\", to=\"Auth-BFF\", nodetext=\"Auth-UI\nWeb Interface\nRT: 33ms\nErr: 0.01%\nAvail: 99.99%\", type=\"desktop\", color=\"green\", linkcolor=green, linktext=\"3.3ms\", linkwidth=\"2\" ~ from=\"Auth-BFF\", to=\"Identity-Service\", nodetext=\"Auth-BFF\nBackend Service\nRT: 95ms\nErr: 0.3%\nAvail: 99.88%\", type=\"cloud\", color=\"green\", linkcolor=green, linktext=\"9.6ms\", linkwidth=\"3\" ~ from=\"Identity-Service\", to=\"User-DB\", nodetext=\"Identity-Service\nMicroservice\nRT: 58ms\nErr: 0.1%\nAvail: 99.95%\", type=\"server\", color=\"green\", linkcolor=green, linktext=\"5.8ms\", linkwidth=\"2\" ~ from=\"Identity-Service\", to=\"Auth-Provider\", nodetext=\"Auth-Provider\nExternal\nRT: 185ms\nErr: 1.5%\nAvail: 98.7%\", type=\"globe\", color=\"red\", linkcolor=red, linktext=\"18.5ms\", linkwidth=\"2\" ~ from=\"Identity-Service\", to=\"Permission-Service\", nodetext=\"Permission-Service\nMicroservice\nRT: 72ms\nErr: 0.2%\nAvail: 99.9%\", type=\"server\", color=\"green\", linkcolor=green, linktext=\"7.1ms\", linkwidth=\"1\" ~ from=\"Permission-Service\", to=\"Permission-DB\", nodetext=\"Permission-DB\nDatabase\nRT: 28ms\nErr: 0.05%\nAvail: 99.97%\", type=\"database\", color=\"green\", linkcolor=green, linktext=\"2.8ms\", linkwidth=\"1\"",
+              
+              "$flow_name$"=="auth" AND "$environment$"=="staging", 
+              "from=\"Auth-UI\", to=\"Auth-BFF\", nodetext=\"Auth-UI\nWeb Interface\nRT: 41ms\nErr: 0.08%\nAvail: 99.92%\", type=\"desktop\", color=\"green\", linkcolor=green, linktext=\"4.1ms\", linkwidth=\"2\" ~ from=\"Auth-BFF\", to=\"Identity-Service\", nodetext=\"Auth-BFF\nBackend Service\nRT: 108ms\nErr: 0.5%\nAvail: 99.75%\", type=\"cloud\", color=\"green\", linkcolor=green, linktext=\"10.8ms\", linkwidth=\"3\" ~ from=\"Identity-Service\", to=\"User-DB\", nodetext=\"Identity-Service\nMicroservice\nRT: 67ms\nErr: 0.25%\nAvail: 99.85%\", type=\"server\", color=\"green\", linkcolor=green, linktext=\"6.7ms\", linkwidth=\"2\" ~ from=\"Identity-Service\", to=\"Auth-Provider\", nodetext=\"Auth-Provider\nExternal\nRT: 205ms\nErr: 1.9%\nAvail: 98.2%\", type=\"globe\", color=\"red\", linkcolor=red, linktext=\"20.5ms\", linkwidth=\"2\" ~ from=\"Identity-Service\", to=\"Permission-Service\", nodetext=\"Permission-Service\nMicroservice\nRT: 85ms\nErr: 0.35%\nAvail: 99.8%\", type=\"server\", color=\"green\", linkcolor=green, linktext=\"8.5ms\", linkwidth=\"1\" ~ from=\"Permission-Service\", to=\"Permission-DB\", nodetext=\"Permission-DB\nDatabase\nRT: 32ms\nErr: 0.1%\nAvail: 99.92%\", type=\"database\", color=\"green\", linkcolor=green, linktext=\"3.2ms\", linkwidth=\"1\"",
+              
+              "$flow_name$"=="auth" AND "$environment$"=="dev", 
+              "from=\"Auth-UI\", to=\"Auth-BFF\", nodetext=\"Auth-UI\nWeb Interface\nRT: 53ms\nErr: 0.2%\nAvail: 99.8%\", type=\"desktop\", color=\"green\", linkcolor=green, linktext=\"5.3ms\", linkwidth=\"2\" ~ from=\"Auth-BFF\", to=\"Identity-Service\", nodetext=\"Auth-BFF\nBackend Service\nRT: 142ms\nErr: 0.9%\nAvail: 99.5%\", type=\"cloud\", color=\"yellow\", linkcolor=yellow, linktext=\"14.2ms\", linkwidth=\"3\" ~ from=\"Identity-Service\", to=\"User-DB\", nodetext=\"Identity-Service\nMicroservice\nRT: 82ms\nErr: 0.45%\nAvail: 99.75%\", type=\"server\", color=\"green\", linkcolor=green, linktext=\"8.2ms\", linkwidth=\"2\" ~ from=\"Identity-Service\", to=\"Auth-Provider\", nodetext=\"Auth-Provider\nExternal\nRT: 245ms\nErr: 2.5%\nAvail: 97.8%\", type=\"globe\", color=\"red\", linkcolor=red, linktext=\"24.5ms\", linkwidth=\"2\" ~ from=\"Identity-Service\", to=\"Permission-Service\", nodetext=\"Permission-Service\nMicroservice\nRT: 105ms\nErr: 0.6%\nAvail: 99.6%\", type=\"server\", color=\"yellow\", linkcolor=yellow, linktext=\"10.5ms\", linkwidth=\"1\" ~ from=\"Permission-Service\", to=\"Permission-DB\", nodetext=\"Permission-DB\nDatabase\nRT: 42ms\nErr: 0.25%\nAvail: 99.82%\", type=\"database\", color=\"green\", linkcolor=green, linktext=\"4.2ms\", linkwidth=\"1\""
             )
-          | makemv delim="-" raw 
+          | makemv delim="~" raw 
           | mvexpand raw 
           | rename raw as _raw 
-          | extract field=_raw "from=\"(?<from>[^\"]+)\", to=\"(?<to>[^\"]+)\", nodetext=\"(?<nodetext>[^\"]+)\", type=\"(?<type>[^\"]+)\", color=\"(?<color>[^\"]+)\", linkcolor=\"(?<linkcolor>[^\"]+)\", linktext=\"(?<linktext>[^\"]+)\", linkwidth=\"(?<linkwidth>[^\"]+)\""
+          | extract field=_raw "from=\"(?<from>[^\"]+)\", to=\"(?<to>[^\"]+)\", nodetext=\"(?<nodetext>[^\"]+)\", type=\"(?<type>[^\"]+)\", color=\"(?<color>[^\"]+)\", linkcolor=(?<linkcolor>[^,]+), linktext=\"(?<linktext>[^\"]+)\", linkwidth=\"(?<linkwidth>[^\"]+)\""
+          | table from to nodetext type color linkcolor linktext linkwidth
           </query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <refresh>$refresh_interval$</refresh>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="count">100</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- Main Network Diagram -->
+  <row>
+    <panel>
+      <title>Flow Overview: $flow_name$</title>
+      <viz type="network-diagram-viz.network-diagram-viz">
+        <search base="flow_data">
+          <query></query>
         </search>
         <option name="height">600</option>
         <option name="network-diagram-viz.network-diagram-viz.DisplayPhysics">true</option>
@@ -85,6 +105,7 @@
     </panel>
   </row>
 
+  <!-- Service Details Panel (appears after clicking a node) -->
   <row depends="$selected_asset$">
     <panel>
       <title>Service Details: $selected_asset$</title>
@@ -94,12 +115,12 @@
           | makeresults count=10
           | streamstats count 
           | eval _time=now()-((10-count)*60) 
-          | eval min=if("$selected_asset$"=="Payment-Gateway" OR "$selected_asset$"=="Auth-Provider", 190, 30)
-          | eval max=if("$selected_asset$"=="Payment-Gateway" OR "$selected_asset$"=="Auth-Provider", 240, 120)
-          | eval min_err=if("$selected_asset$"=="Payment-Gateway" OR "$selected_asset$"=="Auth-Provider", 0.8, 0.01)
-          | eval max_err=if("$selected_asset$"=="Payment-Gateway" OR "$selected_asset$"=="Auth-Provider", 1.5, 0.5)
-          | eval min_avail=if("$selected_asset$"=="Payment-Gateway" OR "$selected_asset$"=="Auth-Provider", 98.5, 99.8)
-          | eval max_avail=if("$selected_asset$"=="Payment-Gateway" OR "$selected_asset$"=="Auth-Provider", 99.2, 100)
+          | eval min=if(match("$selected_asset$", "Gateway|Provider"), 190, 30)
+          | eval max=if(match("$selected_asset$", "Gateway|Provider"), 240, 120)
+          | eval min_err=if(match("$selected_asset$", "Gateway|Provider"), 0.8, 0.01)
+          | eval max_err=if(match("$selected_asset$", "Gateway|Provider"), 1.5, 0.5)
+          | eval min_avail=if(match("$selected_asset$", "Gateway|Provider"), 98.5, 99.8)
+          | eval max_avail=if(match("$selected_asset$", "Gateway|Provider"), 99.2, 100)
           | eval "Response Time (ms)"=round(random()*(max-min)+min, 2)
           | eval "Error Rate (%)"=round(random()*(max_err-min_err)+min_err, 3)
           | eval "Availability (%)"=round(random()*(max_avail-min_avail)+min_avail, 2)
@@ -115,6 +136,7 @@
     </panel>
   </row>
 
+  <!-- Error Logs Panel (appears after clicking a node) -->
   <row depends="$selected_asset$">
     <panel>
       <title>Error Log: $selected_asset$</title>
@@ -153,6 +175,7 @@
     </panel>
   </row>
 
+  <!-- Flow Performance Overview -->
   <row>
     <panel>
       <title>Flow Performance Overview</title>
@@ -161,34 +184,34 @@
           <query>
           | makeresults
           | eval raw = case(
-              "$flow_name$"=="checkout-process", 
-              "asset_name=\"UI\", asset_type=\"UI\", avg_response_time=45, avg_error_rate=0.02, avg_availability=99.99 - 
-              asset_name=\"BFF-Checkout\", asset_type=\"BFF\", avg_response_time=125, avg_error_rate=0.5, avg_availability=99.8 - 
-              asset_name=\"Order-Service\", asset_type=\"Microservice\", avg_response_time=78, avg_error_rate=0.15, avg_availability=99.95 - 
-              asset_name=\"Inventory-Service\", asset_type=\"Microservice\", avg_response_time=92, avg_error_rate=0.2, avg_availability=99.92 - 
-              asset_name=\"Payment-Service\", asset_type=\"Microservice\", avg_response_time=87, avg_error_rate=0.18, avg_availability=99.93 - 
-              asset_name=\"Payment-Gateway\", asset_type=\"External\", avg_response_time=201, avg_error_rate=1.2, avg_availability=98.9 - 
+              "$flow_name$"=="checkout", 
+              "asset_name=\"UI\", asset_type=\"UI\", avg_response_time=45, avg_error_rate=0.02, avg_availability=99.99 ~ 
+              asset_name=\"BFF-Checkout\", asset_type=\"BFF\", avg_response_time=125, avg_error_rate=0.5, avg_availability=99.8 ~ 
+              asset_name=\"Order-Service\", asset_type=\"Microservice\", avg_response_time=78, avg_error_rate=0.15, avg_availability=99.95 ~ 
+              asset_name=\"Inventory-Service\", asset_type=\"Microservice\", avg_response_time=92, avg_error_rate=0.2, avg_availability=99.92 ~ 
+              asset_name=\"Payment-Service\", asset_type=\"Microservice\", avg_response_time=87, avg_error_rate=0.18, avg_availability=99.93 ~ 
+              asset_name=\"Payment-Gateway\", asset_type=\"External\", avg_response_time=201, avg_error_rate=1.2, avg_availability=98.9 ~ 
               asset_name=\"Warehouse-DB\", asset_type=\"Database\", avg_response_time=31, avg_error_rate=0.05, avg_availability=99.98",
               
-              "$flow_name$"=="search-flow", 
-              "asset_name=\"Search-UI\", asset_type=\"UI\", avg_response_time=38, avg_error_rate=0.05, avg_availability=99.97 - 
-              asset_name=\"Search-BFF\", asset_type=\"BFF\", avg_response_time=110, avg_error_rate=0.3, avg_availability=99.85 - 
-              asset_name=\"Query-Service\", asset_type=\"Microservice\", avg_response_time=65, avg_error_rate=0.1, avg_availability=99.93 - 
-              asset_name=\"Index-Service\", asset_type=\"Microservice\", avg_response_time=58, avg_error_rate=0.08, avg_availability=99.94 - 
-              asset_name=\"Analytics-Service\", asset_type=\"Microservice\", avg_response_time=175, avg_error_rate=0.8, avg_availability=99.7 - 
-              asset_name=\"Search-DB\", asset_type=\"Database\", avg_response_time=42, avg_error_rate=0.05, avg_availability=99.95 - 
+              "$flow_name$"=="search", 
+              "asset_name=\"Search-UI\", asset_type=\"UI\", avg_response_time=38, avg_error_rate=0.05, avg_availability=99.97 ~ 
+              asset_name=\"Search-BFF\", asset_type=\"BFF\", avg_response_time=110, avg_error_rate=0.3, avg_availability=99.85 ~ 
+              asset_name=\"Query-Service\", asset_type=\"Microservice\", avg_response_time=65, avg_error_rate=0.1, avg_availability=99.93 ~ 
+              asset_name=\"Index-Service\", asset_type=\"Microservice\", avg_response_time=58, avg_error_rate=0.08, avg_availability=99.94 ~ 
+              asset_name=\"Analytics-Service\", asset_type=\"Microservice\", avg_response_time=175, avg_error_rate=0.8, avg_availability=99.7 ~ 
+              asset_name=\"Search-DB\", asset_type=\"Database\", avg_response_time=42, avg_error_rate=0.05, avg_availability=99.95 ~ 
               asset_name=\"Analytics-DB\", asset_type=\"Database\", avg_response_time=88, avg_error_rate=0.2, avg_availability=99.9",
               
-              "$flow_name$"=="user-auth", 
-              "asset_name=\"Auth-UI\", asset_type=\"UI\", avg_response_time=33, avg_error_rate=0.01, avg_availability=99.99 - 
-              asset_name=\"Auth-BFF\", asset_type=\"BFF\", avg_response_time=95, avg_error_rate=0.3, avg_availability=99.88 - 
-              asset_name=\"Identity-Service\", asset_type=\"Microservice\", avg_response_time=58, avg_error_rate=0.1, avg_availability=99.95 - 
-              asset_name=\"Auth-Provider\", asset_type=\"External\", avg_response_time=185, avg_error_rate=1.5, avg_availability=98.7 - 
-              asset_name=\"Permission-Service\", asset_type=\"Microservice\", avg_response_time=72, avg_error_rate=0.2, avg_availability=99.9 - 
-              asset_name=\"User-DB\", asset_type=\"Database\", avg_response_time=43, avg_error_rate=0.05, avg_availability=99.97 - 
+              "$flow_name$"=="auth", 
+              "asset_name=\"Auth-UI\", asset_type=\"UI\", avg_response_time=33, avg_error_rate=0.01, avg_availability=99.99 ~ 
+              asset_name=\"Auth-BFF\", asset_type=\"BFF\", avg_response_time=95, avg_error_rate=0.3, avg_availability=99.88 ~ 
+              asset_name=\"Identity-Service\", asset_type=\"Microservice\", avg_response_time=58, avg_error_rate=0.1, avg_availability=99.95 ~ 
+              asset_name=\"Auth-Provider\", asset_type=\"External\", avg_response_time=185, avg_error_rate=1.5, avg_availability=98.7 ~ 
+              asset_name=\"Permission-Service\", asset_type=\"Microservice\", avg_response_time=72, avg_error_rate=0.2, avg_availability=99.9 ~ 
+              asset_name=\"User-DB\", asset_type=\"Database\", avg_response_time=43, avg_error_rate=0.05, avg_availability=99.97 ~ 
               asset_name=\"Permission-DB\", asset_type=\"Database\", avg_response_time=28, avg_error_rate=0.05, avg_availability=99.97"
             )
-          | makemv delim="-" raw 
+          | makemv delim="~" raw 
           | mvexpand raw 
           | rename raw as _raw 
           | extract field=_raw "asset_name=\"(?<asset_name>[^\"]+)\", asset_type=\"(?<asset_type>[^\"]+)\", avg_response_time=(?<avg_response_time>[^,]+), avg_error_rate=(?<avg_error_rate>[^,]+), avg_availability=(?<avg_availability>[^,^\\s]+)"
@@ -211,6 +234,7 @@
     </panel>
   </row>
 
+  <!-- Health Summary by Team -->
   <row>
     <panel>
       <title>Health Summary by Team</title>
@@ -219,29 +243,29 @@
           <query>
           | makeresults
           | eval raw = case(
-              "$flow_name$"=="checkout-process", 
-              "asset_owner=\"Frontend Team\", total_assets=1, avg_response_time=45, avg_error_rate=0.02, avg_availability=99.99 - 
-              asset_owner=\"BFF Team\", total_assets=1, avg_response_time=125, avg_error_rate=0.5, avg_availability=99.8 - 
-              asset_owner=\"Order Team\", total_assets=2, avg_response_time=85, avg_error_rate=0.175, avg_availability=99.935 - 
-              asset_owner=\"Payment Team\", total_assets=1, avg_response_time=201, avg_error_rate=1.2, avg_availability=98.9 - 
+              "$flow_name$"=="checkout", 
+              "asset_owner=\"Frontend Team\", total_assets=1, avg_response_time=45, avg_error_rate=0.02, avg_availability=99.99 ~ 
+              asset_owner=\"BFF Team\", total_assets=1, avg_response_time=125, avg_error_rate=0.5, avg_availability=99.8 ~ 
+              asset_owner=\"Order Team\", total_assets=2, avg_response_time=85, avg_error_rate=0.175, avg_availability=99.935 ~ 
+              asset_owner=\"Payment Team\", total_assets=1, avg_response_time=201, avg_error_rate=1.2, avg_availability=98.9 ~ 
               asset_owner=\"Database Team\", total_assets=1, avg_response_time=31, avg_error_rate=0.05, avg_availability=99.98",
               
-              "$flow_name$"=="search-flow", 
-              "asset_owner=\"Frontend Team\", total_assets=1, avg_response_time=38, avg_error_rate=0.05, avg_availability=99.97 - 
-              asset_owner=\"BFF Team\", total_assets=1, avg_response_time=110, avg_error_rate=0.3, avg_availability=99.85 - 
-              asset_owner=\"Search Team\", total_assets=2, avg_response_time=61.5, avg_error_rate=0.09, avg_availability=99.935 - 
-              asset_owner=\"Analytics Team\", total_assets=1, avg_response_time=175, avg_error_rate=0.8, avg_availability=99.7 - 
+              "$flow_name$"=="search", 
+              "asset_owner=\"Frontend Team\", total_assets=1, avg_response_time=38, avg_error_rate=0.05, avg_availability=99.97 ~ 
+              asset_owner=\"BFF Team\", total_assets=1, avg_response_time=110, avg_error_rate=0.3, avg_availability=99.85 ~ 
+              asset_owner=\"Search Team\", total_assets=2, avg_response_time=61.5, avg_error_rate=0.09, avg_availability=99.935 ~ 
+              asset_owner=\"Analytics Team\", total_assets=1, avg_response_time=175, avg_error_rate=0.8, avg_availability=99.7 ~ 
               asset_owner=\"Database Team\", total_assets=2, avg_response_time=65, avg_error_rate=0.125, avg_availability=99.925",
               
-              "$flow_name$"=="user-auth", 
-              "asset_owner=\"Frontend Team\", total_assets=1, avg_response_time=33, avg_error_rate=0.01, avg_availability=99.99 - 
-              asset_owner=\"BFF Team\", total_assets=1, avg_response_time=95, avg_error_rate=0.3, avg_availability=99.88 - 
-              asset_owner=\"Identity Team\", total_assets=1, avg_response_time=58, avg_error_rate=0.1, avg_availability=99.95 - 
-              asset_owner=\"External Auth\", total_assets=1, avg_response_time=185, avg_error_rate=1.5, avg_availability=98.7 - 
-              asset_owner=\"Permissions Team\", total_assets=1, avg_response_time=72, avg_error_rate=0.2, avg_availability=99.9 - 
+              "$flow_name$"=="auth", 
+              "asset_owner=\"Frontend Team\", total_assets=1, avg_response_time=33, avg_error_rate=0.01, avg_availability=99.99 ~ 
+              asset_owner=\"BFF Team\", total_assets=1, avg_response_time=95, avg_error_rate=0.3, avg_availability=99.88 ~ 
+              asset_owner=\"Identity Team\", total_assets=1, avg_response_time=58, avg_error_rate=0.1, avg_availability=99.95 ~ 
+              asset_owner=\"External Auth\", total_assets=1, avg_response_time=185, avg_error_rate=1.5, avg_availability=98.7 ~ 
+              asset_owner=\"Permissions Team\", total_assets=1, avg_response_time=72, avg_error_rate=0.2, avg_availability=99.9 ~ 
               asset_owner=\"Database Team\", total_assets=2, avg_response_time=35.5, avg_error_rate=0.05, avg_availability=99.97"
             )
-          | makemv delim="-" raw 
+          | makemv delim="~" raw 
           | mvexpand raw 
           | rename raw as _raw 
           | extract field=_raw "asset_owner=\"(?<Team>[^\"]+)\", total_assets=(?<Assets>[^,]+), avg_response_time=(?<avg_response_time>[^,]+), avg_error_rate=(?<avg_error_rate>[^,]+), avg_availability=(?<avg_availability>[^,^\\s]+)"
